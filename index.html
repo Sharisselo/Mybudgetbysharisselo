@@ -363,6 +363,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </svg>
       <div id="expenseBreakdown" style="margin-top:12px;"></div>
     </div>
+
+    <!-- TOTAL SAVINGS SUMMARY -->
+    <div class="chart-wrap" style="border:1px solid rgba(168,223,200,0.4);background:linear-gradient(160deg,#f2fdf8,#eef8fd);">
+      <div class="chart-title" style="color:var(--mint2);">💰 Total Savings Accumulated</div>
+      <!-- Grand total banner -->
+      <div style="text-align:center;padding:12px 0 16px;">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mint2);margin-bottom:6px;">All-time total saved</div>
+        <div id="grandSavingsTotal" style="font-family:'Playfair Display',serif;font-size:34px;color:var(--green);">XCG 0</div>
+      </div>
+      <!-- Two columns: Goals + Book -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:rgba(122,184,232,0.1);border:1px solid rgba(122,184,232,0.25);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sky2);margin-bottom:4px;">🎯 Goals</div>
+          <div id="overviewGoalsTotal" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--sky2);">XCG 0</div>
+          <div id="overviewGoalsCount" style="font-size:10px;color:var(--text3);margin-top:3px;">0 goals</div>
+        </div>
+        <div style="background:rgba(114,199,168,0.1);border:1px solid rgba(114,199,168,0.25);border-radius:12px;padding:12px;text-align:center;">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mint2);margin-bottom:4px;">📖 Book</div>
+          <div id="overviewBookTotal" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--mint2);">XCG 0</div>
+          <div id="overviewBookCount" style="font-size:10px;color:var(--text3);margin-top:3px;">0 entries</div>
+        </div>
+      </div>
+      <!-- Goals breakdown -->
+      <div id="overviewGoalsBreakdown"></div>
+    </div>
+
   </div>
 </div>
 
@@ -718,7 +744,36 @@ function updateSummary(){
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────────────────
-function updateOverview(){ updateBvaTable(); updateBarChart(); updateDonut(); }
+function updateOverview(){ updateBvaTable(); updateBarChart(); updateDonut(); updateSavingsSummary(); }
+
+function updateSavingsSummary(){
+  const goalsTotal = S.globalGoals.reduce((a,g) => a + (g.totalSaved||0), 0);
+  const bookEntries = S.savingsBook||[];
+  const bookBalance = Math.max(bookEntries.reduce((a,e) => a + (e.type==='withdrawal' ? -e.amount : e.amount), 0), 0);
+  const grandTotal = goalsTotal + bookBalance;
+  document.getElementById('grandSavingsTotal').textContent = fmtN(grandTotal);
+  document.getElementById('overviewGoalsTotal').textContent = fmtN(goalsTotal);
+  document.getElementById('overviewGoalsCount').textContent = S.globalGoals.length + ' goal' + (S.globalGoals.length===1?'':'s');
+  document.getElementById('overviewBookTotal').textContent = fmtN(bookBalance);
+  document.getElementById('overviewBookCount').textContent = bookEntries.length + ' entr' + (bookEntries.length===1?'y':'ies');
+  const bd = document.getElementById('overviewGoalsBreakdown'); if(!bd) return;
+  if(!S.globalGoals.length && bookBalance===0){ bd.innerHTML='<div style="text-align:center;padding:16px;font-size:11px;color:var(--text3);">No savings yet 2014 add goals or deposits to see your totals here D83CDF38</div>'; return; }
+  let html = '';
+  if(S.globalGoals.length){
+    html += '<div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;padding-top:4px;">Goal Breakdown</div>';
+    S.globalGoals.forEach((g,i) => {
+      const ts=g.totalSaved||0, tgt=parseFloat(g.target)||0;
+      const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
+      const rem=Math.max(tgt-ts,0);
+      const color=COLORS[i%COLORS.length];
+      html += '<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;"></div><span style="font-size:12px;color:var(--text);">'+g.name+'</span></div><div style="display:flex;align-items:center;gap:8px;"><span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);">'+fmtN(ts)+(tgt>0?' / '+fmtN(tgt):'')+'</span>'+(tgt>0?'<span class="diff-badge '+(pct>=100?'diff-under':'diff-zero')+'">'+pct+'%</span>':'')+'</div></div>'+(tgt>0?'<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+color+';opacity:0.85;"></div></div>':'')+(tgt>0&&rem>0?'<div style="font-size:10px;color:var(--text3);margin-top:3px;text-align:right;">'+fmtN(rem)+' to go</div>':'')+'</div>';
+    });
+  }
+  if(bookBalance>0){
+    html += '<div style="margin-top:'+(S.globalGoals.length?'8px':'0')+';padding-top:'+(S.globalGoals.length?'10px':'0')+';'+(S.globalGoals.length?'border-top:1px solid var(--border);':'')+'"><div style="display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--mint2);flex-shrink:0;"></div><span style="font-size:12px;color:var(--text);">Savings Book</span></div><span style="font-family:DM Mono,monospace;font-size:11px;color:var(--mint2);font-weight:500;">'+fmtN(bookBalance)+'</span></div><div style="font-size:10px;color:var(--text3);margin-top:2px;padding-left:14px;">'+bookEntries.length+' entr'+(bookEntries.length===1?'y':'ies')+' logged</div></div>';
+  }
+  bd.innerHTML=html;
+}
 
 function updateBvaTable(){
   const m=getM(), t=calcPeriodTotals(m);
