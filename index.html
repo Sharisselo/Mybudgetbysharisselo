@@ -60,7 +60,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .card-title{font-size:12px;font-weight:500;color:var(--text);}
 .add-btn{background:linear-gradient(135deg,var(--peach),var(--peach2));border:none;color:#fff;font-size:15px;width:24px;height:24px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 2px 6px rgba(244,169,126,0.35);}
 .add-btn:hover{transform:scale(1.1);}
-.bva-row{display:grid;grid-template-columns:1fr 80px 80px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
+
+/* BVA rows — income & variable use formatted display inputs */
+.bva-row{display:grid;grid-template-columns:1fr 88px 88px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
 .bva-row:last-child{border-bottom:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .bva-name{font-size:12px;color:var(--text);background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;width:100%;min-width:0;}
@@ -70,7 +72,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bva-input.actual:focus{border-color:var(--mint2);}
 .del-btn{background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;transition:color 0.2s;}
 .del-btn:hover{color:var(--rose2);}
-.bva-col-headers{display:grid;grid-template-columns:1fr 80px 80px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.bva-col-headers{display:grid;grid-template-columns:1fr 88px 88px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .bva-col-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);text-align:right;}
 .bva-col-label:first-child{text-align:left;}
 .diff-badge{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:8px;white-space:nowrap;}
@@ -116,6 +118,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .breakdown-name{flex:1;font-size:11px;color:var(--text2);}
 .breakdown-pct{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-right:6px;}
 .breakdown-amt{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);}
+/* DEBT CARD */
 .debt-card{background:#fff;border:1px solid var(--border2);border-radius:16px;padding:15px;margin-bottom:10px;box-shadow:0 2px 10px rgba(200,170,155,0.07);}
 .debt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .debt-name{font-size:13px;font-weight:500;color:var(--text);}
@@ -127,8 +130,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .debt-this-month{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .debt-month-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
 .debt-month-row{display:flex;gap:8px;align-items:center;}
-.small-input{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);outline:none;text-align:right;transition:border-color 0.2s;}
+.small-input{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);outline:none;text-align:right;transition:border-color 0.2s;width:100%;}
 .small-input:focus{border-color:var(--rose);}
+.debt-actions{display:flex;gap:6px;margin-top:8px;}
+.action-btn{flex:1;padding:7px 10px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;text-align:center;}
+.action-btn.edit{background:rgba(122,184,232,0.15);color:var(--sky2);border:1px solid rgba(122,184,232,0.3);}
+.action-btn.edit:hover{background:rgba(122,184,232,0.25);}
+.action-btn.danger{background:rgba(212,96,122,0.1);color:var(--red);border:1px solid rgba(212,96,122,0.25);}
+.action-btn.danger:hover{background:rgba(212,96,122,0.2);}
+/* GOAL CARD */
 .goal-card{background:#fff;border:1px solid var(--border2);border-radius:16px;padding:15px;margin-bottom:10px;box-shadow:0 2px 10px rgba(200,170,155,0.07);}
 .goal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .goal-name{font-size:13px;font-weight:500;color:var(--text);}
@@ -184,6 +194,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .modal-btn.primary{background:linear-gradient(135deg,var(--rose),var(--rose2));color:#fff;box-shadow:0 3px 12px rgba(242,168,188,0.4);}
 .modal-btn.secondary{background:var(--bg);border:1px solid var(--border2);color:var(--text2);}
 .modal-btn.green{background:linear-gradient(135deg,var(--mint),var(--mint2));color:#fff;box-shadow:0 3px 12px rgba(168,223,200,0.4);}
+.modal-btn.sky{background:linear-gradient(135deg,var(--sky),var(--sky2));color:#fff;box-shadow:0 3px 12px rgba(122,184,232,0.4);}
 .field-row{margin-bottom:10px;}
 .field-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
 /* Rollover */
@@ -193,7 +204,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .rollover-opt-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
 .rollover-opt-sub{font-size:10px;color:var(--text2);}
 .rollover-opt.selected{border-color:var(--rose2);background:rgba(242,168,188,0.08);}
-/* misc */
+/* info banner */
+.info-banner{background:rgba(122,184,232,0.12);border:1px solid rgba(122,184,232,0.3);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--sky2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+/* settings */
 .settings-card{background:#fff;border:1px solid var(--border2);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(200,170,155,0.07);}
 .settings-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:12px;}
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
@@ -285,7 +298,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div id="tab-debts" class="tab-content">
   <div class="section">
     <div class="section-title">Debt Tracker</div>
-    <div class="section-sub">Total debt rolls over each month — log what you paid this period</div>
+    <div class="section-sub">Log what you paid this period — balance updates automatically</div>
     <div id="debt-list"></div>
     <div id="debt-totals" style="margin-bottom:12px;"></div>
     <button class="new-month-btn" onclick="openDebtModal()">+ Add Debt</button>
@@ -296,7 +309,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div id="tab-savings" class="tab-content">
   <div class="section">
     <div class="section-title">Savings Goals</div>
-    <div class="section-sub">Log what you save each period — it accumulates toward your goal</div>
+    <div class="section-sub">Track progress toward each goal — edit balance anytime</div>
     <div id="goals-list"></div>
     <button class="new-month-btn" onclick="openGoalModal()">+ Add Goal</button>
   </div>
@@ -375,7 +388,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           style="width:60px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;text-align:center;"
           oninput="updateSalaryDay(this.value)"/>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.6;">Your budget period runs from the <span id="salaryDayPreview" style="color:var(--rose2);font-weight:600;">23rd</span> of each month to the day before the following month's salary.</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.6;">Your budget period runs from the <span id="salaryDayPreview" style="color:var(--rose2);font-weight:600;">23rd</span> of each month.</div>
     </div>
     <div class="settings-card">
       <div class="settings-title">Data</div>
@@ -387,15 +400,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- ── MODALS ── -->
+
+<!-- New Month -->
 <div class="modal-overlay" id="newMonthModal">
   <div class="modal">
     <div class="modal-title">New Period 🌸</div>
-    <div class="modal-sub">Previous period will be saved to history.</div>
+    <div class="modal-sub">Previous period is saved to history — you can still go back and edit it anytime.</div>
     <div class="field-row"><div class="field-label">Period Name</div><input class="modal-input" id="newMonthName" placeholder="e.g. Apr 23 – May 22"/></div>
     <div class="field-row"><div class="field-label">Copy fixed expenses from current?</div>
       <select class="modal-input" id="copyFixed" style="cursor:pointer;">
-        <option value="yes">Yes — copy fixed expenses & debts & goals</option>
+        <option value="yes">Yes — copy fixed expenses</option>
         <option value="no">No — start blank</option>
       </select>
     </div>
@@ -429,20 +444,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Goal (add + edit) -->
 <div class="modal-overlay" id="goalModal">
   <div class="modal">
-    <div class="modal-title">Add Savings Goal 🎯</div>
-    <div class="modal-sub">Your monthly contributions will accumulate</div>
+    <div class="modal-title" id="goalModalTitle">Add Savings Goal 🎯</div>
+    <div class="modal-sub">Set a target and track your progress</div>
     <div class="field-row"><div class="field-label">Goal Name</div><input class="modal-input" id="goalName" placeholder="e.g. Emergency Fund, Vacation"/></div>
     <div class="field-row"><div class="field-label">Target Amount (XCG)</div><input class="modal-input" id="goalTarget" type="number" placeholder="5000"/></div>
-    <div class="field-row"><div class="field-label">Already Saved (XCG)</div><input class="modal-input" id="goalSaved" type="number" placeholder="0"/></div>
+    <div class="field-row">
+      <div class="field-label">Beginning Balance / Already Saved (XCG)</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Enter what you already have saved toward this goal</div>
+      <input class="modal-input" id="goalSaved" type="number" placeholder="0"/>
+    </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('goalModal')">Cancel</button>
-      <button class="modal-btn primary" onclick="confirmGoal()">Add Goal</button>
+      <button class="modal-btn primary" id="goalSaveBtn" onclick="confirmGoal()">Add Goal</button>
     </div>
   </div>
 </div>
 
+<!-- Debt (add) -->
 <div class="modal-overlay" id="debtModal">
   <div class="modal">
     <div class="modal-title">Add Debt 💳</div>
@@ -458,10 +479,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Debt Edit -->
+<div class="modal-overlay" id="debtEditModal">
+  <div class="modal">
+    <div class="modal-title">Edit Debt 💳</div>
+    <div class="modal-sub">Update any details for this debt</div>
+    <input type="hidden" id="editDebtId"/>
+    <div class="field-row"><div class="field-label">Debt Name</div><input class="modal-input" id="editDebtName" placeholder="e.g. Credit Card"/></div>
+    <div class="field-row"><div class="field-label">Current Balance (XCG)</div><input class="modal-input" id="editDebtBalance" type="number" placeholder="3000"/></div>
+    <div class="field-row"><div class="field-label">Minimum Monthly Payment (XCG)</div><input class="modal-input" id="editDebtPayment" type="number" placeholder="200"/></div>
+    <div class="field-row"><div class="field-label">Interest Rate (% APR)</div><input class="modal-input" id="editDebtRate" type="number" placeholder="18.99"/></div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('debtEditModal')">Cancel</button>
+      <button class="modal-btn sky" onclick="confirmDebtEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deposit -->
 <div class="modal-overlay" id="depositModal">
   <div class="modal">
-    <div class="modal-title">Log Entry 📖</div>
-    <div class="modal-sub">Add a deposit or withdrawal to your savings book</div>
+    <div class="modal-title" id="depositModalTitle">Log Entry 📖</div>
+    <div class="modal-sub" id="depositModalSub">Add a deposit or withdrawal to your savings book</div>
     <div class="field-row"><div class="field-label">Type</div>
       <select class="modal-input" id="depositType" style="cursor:pointer;">
         <option value="deposit">Deposit (+)</option>
@@ -478,6 +517,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Savings Book Beginning Balance -->
+<div class="modal-overlay" id="bookBalanceModal">
+  <div class="modal">
+    <div class="modal-title">Set Beginning Balance 📖</div>
+    <div class="modal-sub">Enter what you already have in your physical savings book</div>
+    <div class="field-row"><div class="field-label">Current Balance (XCG)</div><input class="modal-input" id="bookBalanceAmount" type="number" placeholder="0"/></div>
+    <div class="field-row"><div class="field-label">Note (optional)</div><input class="modal-input" id="bookBalanceNote" placeholder="e.g. Opening balance"/></div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('bookBalanceModal')">Cancel</button>
+      <button class="modal-btn green" onclick="confirmBookBalance()">Set Balance</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -485,11 +538,12 @@ const KEY = 'myBudgetV3';
 let S = { salaryDay:23, currentIdx:0, months:[], globalDebts:[], globalGoals:[], savingsBook:[] };
 const COLORS = ['#f4a97e','#eb7fa0','#72c7a8','#ad90d8','#7ab8e8','#f0cc60','#f78fb3','#a29bfe','#fd9644','#4bcffa'];
 let _rolloverChoice = 'carryover';
+let _editingGoalId = null;
 
 function load(){
   const d = localStorage.getItem(KEY);
   if(d){ try{ S=JSON.parse(d); if(!S.savingsBook) S.savingsBook=[]; }catch(e){ init(); } }
-  else { init(); }
+  else{ init(); }
 }
 function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
 function init(){ S={salaryDay:23,currentIdx:0,months:[],globalDebts:[],globalGoals:[],savingsBook:[]}; createMonth(autoMonthName()); }
@@ -505,7 +559,7 @@ function createMonth(name, carryover=0){
   S.currentIdx=S.months.length-1;
 }
 
-// ── FORMAT: XCG with thousands separator ────────────────────────────────────
+// ── FORMAT ────────────────────────────────────────────────────────────────────
 function fmtN(n){
   return 'XCG\u00A0'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
 }
@@ -523,31 +577,57 @@ function updatePeriodDisplay(){
   const prev=document.getElementById('salaryDayPreview'); if(prev) prev.textContent=ordinal(S.salaryDay||23);
 }
 
-// ── BVA ROWS ─────────────────────────────────────────────────────────────────
-function addBvaRow(cid,type,name='',budgeted='',actual=''){
+// ── BVA ROWS (income & variable) — with thousands-formatted display ───────────
+// We store raw numbers but show formatted display text, switching to plain number on focus
+function addBvaRow(cid, type, name='', budgeted='', actual=''){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='bva-row';
-  row.innerHTML=`<input class="bva-name" placeholder="Description" value="${name}" oninput="syncBva('${cid}','${type}')"/>
-    <input class="bva-input" type="number" placeholder="0" value="${budgeted}" oninput="syncBva('${cid}','${type}')"/>
-    <input class="bva-input actual" type="number" placeholder="0" value="${actual}" oninput="syncBva('${cid}','${type}')"/>
+  const bFmt = budgeted ? formatNum(budgeted) : '';
+  const aFmt = actual   ? formatNum(actual)   : '';
+  row.innerHTML=`
+    <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncBva('${cid}','${type}')"/>
+    <input class="bva-input" placeholder="0" value="${bFmt}"
+      onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
+    <input class="bva-input actual" placeholder="0" value="${aFmt}"
+      onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
     <button class="del-btn" onclick="this.parentElement.remove();syncBva('${cid}','${type}')">✕</button>`;
   c.appendChild(row); syncBva(cid,type);
 }
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function formatNum(n){ const v=parseFloat(n)||0; return v===0?'':v.toLocaleString('en-US',{maximumFractionDigits:2}); }
+
+function unfmtInput(el){
+  // on focus: strip commas so user can type numbers
+  const raw = parseFloat(el.value.replace(/,/g,''))||0;
+  el.value = raw===0?'':raw;
+  el.type='number';
+}
+function fmtInput(el, cid, type){
+  el.type='text';
+  const raw=parseFloat(el.value)||0;
+  el.value=raw===0?'':formatNum(raw);
+  syncBva(cid,type);
+}
+
 function syncBva(cid,type){
   const m=getM(), rows=document.querySelectorAll('#'+cid+' .bva-row');
   m[type]=Array.from(rows).map(r=>{
-    const inp=r.querySelectorAll('input[type=number]');
-    return{name:r.querySelector('.bva-name').value,budgeted:parseFloat(inp[0].value)||0,actual:parseFloat(inp[1].value)||0};
+    const inp=r.querySelectorAll('.bva-input');
+    // parse stripping commas (value might be formatted or plain)
+    const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
+    const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
+    return{name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); updateBvaSummary(type); updateOverview();
 }
 
-// ── FIXED ROWS ───────────────────────────────────────────────────────────────
+// ── FIXED ROWS ────────────────────────────────────────────────────────────────
 function addFixedRow(cid,name='',budgeted='',actual='',paid=false){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='fixed-row'+(paid?' paid-row':'');
   row.innerHTML=`<button class="paid-toggle${paid?' paid':''}" onclick="togglePaid(this)">${paid?'✓':''}</button>
-    <input class="bva-name" placeholder="Description" value="${name}" oninput="syncFixed()"/>
+    <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncFixed()"/>
     <input class="bva-input" type="number" placeholder="0" value="${budgeted}" oninput="syncFixed()"/>
     <input class="bva-input actual" type="number" placeholder="0" value="${actual}" oninput="syncFixed()"/>
     <button class="del-btn" onclick="this.parentElement.remove();syncFixed()">✕</button>`;
@@ -562,7 +642,7 @@ function syncFixed(){
   const m=getM(), rows=document.querySelectorAll('#fixed-rows .fixed-row');
   m.fixed=Array.from(rows).map(r=>{
     const inp=r.querySelectorAll('input[type=number]'), paid=r.querySelector('.paid-toggle').classList.contains('paid');
-    return{name:r.querySelector('.bva-name').value,budgeted:parseFloat(inp[0].value)||0,actual:parseFloat(inp[1].value)||0,paid};
+    return{name:r.querySelector('.bva-name').value, budgeted:parseFloat(inp[0].value)||0, actual:parseFloat(inp[1].value)||0, paid};
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); renderFixedSummary(); updateOverview();
 }
@@ -610,7 +690,7 @@ function updateBvaSummary(type){
   </div>`;
 }
 
-// ── TOTALS ───────────────────────────────────────────────────────────────────
+// ── TOTALS ────────────────────────────────────────────────────────────────────
 function calcPeriodTotals(m){
   const incActual=(m.income||[]).reduce((a,r)=>a+r.actual,0);
   const carryover=parseFloat(m.carryover)||0;
@@ -637,7 +717,7 @@ function updateSummary(){
     :`Over budget by ${fmtN(Math.abs(t.balance))}`;
 }
 
-// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+// ── OVERVIEW ──────────────────────────────────────────────────────────────────
 function updateOverview(){ updateBvaTable(); updateBarChart(); updateDonut(); }
 
 function updateBvaTable(){
@@ -646,15 +726,12 @@ function updateBvaTable(){
   const incActual=t.incActual+t.carryover;
   const fixedBudget=(m.fixed||[]).reduce((a,r)=>a+r.budgeted,0);
   const varBudget=(m.variable||[]).reduce((a,r)=>a+r.budgeted,0);
-
-  // Net = Income − Fixed − Variable
   const netBudget=incBudget-fixedBudget-varBudget;
   const netActual=incActual-t.fixedActual-t.varActual;
-
   const rows=[
-    {label:'Income',   budget:incBudget,    actual:incActual,    income:true},
-    {label:'Fixed',    budget:fixedBudget,  actual:t.fixedActual,income:false},
-    {label:'Variable', budget:varBudget,    actual:t.varActual,  income:false},
+    {label:'Income',  budget:incBudget,   actual:incActual,    income:true},
+    {label:'Fixed',   budget:fixedBudget, actual:t.fixedActual,income:false},
+    {label:'Variable',budget:varBudget,   actual:t.varActual,  income:false},
   ];
   let html='';
   rows.forEach(r=>{
@@ -692,10 +769,10 @@ function updateBarChart(){
 function updateDonut(){
   const m=getM();
   const cats=[
-    {name:'Fixed',amount:(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0)},
+    {name:'Fixed',   amount:(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0)},
     {name:'Variable',amount:(m.variable||[]).reduce((a,r)=>a+r.actual,0)},
-    {name:'Debts',amount:Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0)},
-    {name:'Savings',amount:Object.values(m.goalContribs||{}).reduce((a,v)=>a+(parseFloat(v)||0),0)},
+    {name:'Debts',   amount:Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0)},
+    {name:'Savings', amount:Object.values(m.goalContribs||{}).reduce((a,v)=>a+(parseFloat(v)||0),0)},
   ].filter(c=>c.amount>0);
   const tot=cats.reduce((a,c)=>a+c.amount,0);
   const dEl=document.getElementById('donutTotal');
@@ -705,12 +782,12 @@ function updateDonut(){
   if(tot>0){
     const r=55,circ=2*Math.PI*r; let off=0;
     cats.forEach((cat,i)=>{
-      const pct=cat.amount/tot,dash=pct*circ;
+      const pct=cat.amount/tot, dash=pct*circ;
       const arc=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      arc.setAttribute('class','darc');arc.setAttribute('cx',75);arc.setAttribute('cy',75);arc.setAttribute('r',r);
-      arc.setAttribute('fill','none');arc.setAttribute('stroke',COLORS[i%COLORS.length]);arc.setAttribute('stroke-width',22);
-      arc.setAttribute('stroke-dasharray',`${dash} ${circ-dash}`);arc.setAttribute('stroke-dashoffset',circ*0.25-off*circ);
-      svg.insertBefore(arc,svg.querySelector('text'));off+=pct;
+      arc.setAttribute('class','darc'); arc.setAttribute('cx',75); arc.setAttribute('cy',75); arc.setAttribute('r',r);
+      arc.setAttribute('fill','none'); arc.setAttribute('stroke',COLORS[i%COLORS.length]); arc.setAttribute('stroke-width',22);
+      arc.setAttribute('stroke-dasharray',`${dash} ${circ-dash}`); arc.setAttribute('stroke-dashoffset',circ*0.25-off*circ);
+      svg.insertBefore(arc,svg.querySelector('text')); off+=pct;
     });
   }
   const bd=document.getElementById('expenseBreakdown'); if(!bd) return;
@@ -721,12 +798,12 @@ function updateDonut(){
   });
 }
 
-// ── DEBTS ────────────────────────────────────────────────────────────────────
+// ── DEBTS ─────────────────────────────────────────────────────────────────────
 function renderDebts(){
   const m=getM(), list=document.getElementById('debt-list');
   list.innerHTML='';
   S.globalDebts.forEach(d=>{
-    const bal=parseFloat(d.balance)||0,pay=parseFloat(d.minPayment)||0,rate=parseFloat(d.rate)||0;
+    const bal=parseFloat(d.balance)||0, pay=parseFloat(d.minPayment)||0, rate=parseFloat(d.rate)||0;
     const thisPaid=parseFloat((m.debtPayments||{})[d.id])||0, totalPaid=d.totalPaid||0;
     let mos=0;
     if(pay>0&&bal>0){if(rate===0)mos=Math.ceil(bal/pay);else{const r=rate/100/12;mos=Math.ceil(-Math.log(1-r*bal/pay)/Math.log(1+r));}}
@@ -750,10 +827,13 @@ function renderDebts(){
       <div class="payoff-date">🌷 Est. payoff: ${pd}</div>
       <div class="debt-this-month">
         <div class="debt-month-label">This period — amount paid</div>
-        <div class="debt-month-row">
-          <input type="number" value="${thisPaid||''}" placeholder="${fmtN(pay)}" class="small-input" style="flex:1;" oninput="updateDebtPayment('${d.id}',this.value)"/>
-          <button onclick="removeDebt('${d.id}')" class="remove-btn">Remove</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" value="${thisPaid||''}" placeholder="${fmtN(pay)}" class="small-input" oninput="updateDebtPayment('${d.id}',this.value)"/>
         </div>
+      </div>
+      <div class="debt-actions">
+        <button class="action-btn edit" onclick="openDebtEdit('${d.id}')">✏️ Edit Debt</button>
+        <button class="action-btn danger" onclick="removeDebt('${d.id}')">🗑 Delete</button>
       </div>
     </div>`;
   });
@@ -766,17 +846,52 @@ function renderDebts(){
     <div><div style="font-family:'DM Mono',monospace;font-size:15px;color:var(--green)">${fmtN(totPaid)}</div><div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-top:3px">Total Paid Off</div></div>
   </div>`:'';
 }
+
 function updateDebtPayment(id,val){
   const m=getM(); if(!m.debtPayments) m.debtPayments={};
   const prev=parseFloat(m.debtPayments[id])||0, nv=parseFloat(val)||0;
   m.debtPayments[id]=nv;
   const d=S.globalDebts.find(x=>x.id===id);
-  if(d){d.balance=Math.max(0,(parseFloat(d.balance)||0)-nv+prev);d.totalPaid=(d.totalPaid||0)+nv-prev;}
+  if(d){ d.balance=Math.max(0,(parseFloat(d.balance)||0)-nv+prev); d.totalPaid=(d.totalPaid||0)+nv-prev; }
   save(); updateSummary(); renderDebts(); updateOverview();
 }
-function removeDebt(id){S.globalDebts=S.globalDebts.filter(d=>d.id!==id);save();renderDebts();updateSummary();}
 
-// ── GOALS ────────────────────────────────────────────────────────────────────
+function openDebtEdit(id){
+  const d=S.globalDebts.find(x=>x.id===id); if(!d) return;
+  document.getElementById('editDebtId').value=id;
+  document.getElementById('editDebtName').value=d.name;
+  document.getElementById('editDebtBalance').value=d.balance;
+  document.getElementById('editDebtPayment').value=d.minPayment;
+  document.getElementById('editDebtRate').value=d.rate;
+  openModal('debtEditModal');
+}
+
+function confirmDebtEdit(){
+  const id=document.getElementById('editDebtId').value;
+  const d=S.globalDebts.find(x=>x.id===id); if(!d) return;
+  const newBal=parseFloat(document.getElementById('editDebtBalance').value)||0;
+  d.name=document.getElementById('editDebtName').value.trim()||d.name;
+  // If balance was manually updated, adjust originalBalance if needed
+  if(newBal !== d.balance){
+    const diff=d.balance-newBal; // positive = paid more than expected
+    d.totalPaid=(d.totalPaid||0)+Math.max(diff,0);
+    d.balance=Math.max(newBal,0);
+    if(!d.originalBalance || d.originalBalance < d.balance) d.originalBalance=d.balance+(d.totalPaid||0);
+  }
+  d.minPayment=parseFloat(document.getElementById('editDebtPayment').value)||d.minPayment;
+  d.rate=parseFloat(document.getElementById('editDebtRate').value)||0;
+  save(); renderDebts(); updateSummary(); closeModal('debtEditModal');
+}
+
+function removeDebt(id){
+  if(!confirm('Remove this debt? This cannot be undone.')) return;
+  // also clear any payments made to it in all months
+  S.months.forEach(m=>{ if(m.debtPayments) delete m.debtPayments[id]; });
+  S.globalDebts=S.globalDebts.filter(d=>d.id!==id);
+  save(); renderDebts(); updateSummary();
+}
+
+// ── GOALS ─────────────────────────────────────────────────────────────────────
 function renderGoals(){
   const m=getM(), list=document.getElementById('goals-list');
   list.innerHTML='';
@@ -786,7 +901,12 @@ function renderGoals(){
     const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
     const rem=Math.max(tgt-ts,0);
     list.innerHTML+=`<div class="goal-card">
-      <div class="goal-header"><div class="goal-name">${g.name}</div><div class="goal-pct">${pct}%</div></div>
+      <div class="goal-header">
+        <div><div class="goal-name">${g.name}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;">Beginning balance: ${fmtN(g.beginBalance||0)}</div>
+        </div>
+        <div class="goal-pct">${pct}%</div>
+      </div>
       <div class="progress-wrap">
         <div class="progress-label"><span>${fmtN(ts)} saved</span><span>${fmtN(tgt)} goal</span></div>
         <div class="progress-bar"><div class="progress-fill fill-sky" style="width:${pct}%"></div></div>
@@ -798,40 +918,82 @@ function renderGoals(){
       </div>
       <div class="debt-this-month" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
         <div class="debt-month-label">Add to savings this period</div>
-        <div class="debt-month-row">
-          <input type="number" value="${tc||''}" placeholder="0" class="small-input" style="flex:1;" oninput="updateGoalContrib('${g.id}',this.value)"/>
-          <button onclick="removeGoal('${g.id}')" class="remove-btn">Remove</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" value="${tc||''}" placeholder="0" class="small-input" oninput="updateGoalContrib('${g.id}',this.value)"/>
         </div>
+      </div>
+      <div class="debt-actions">
+        <button class="action-btn edit" onclick="openGoalEdit('${g.id}')">✏️ Edit Goal</button>
+        <button class="action-btn danger" onclick="removeGoal('${g.id}')">🗑 Delete</button>
       </div>
     </div>`;
   });
   if(!S.globalGoals.length) list.innerHTML='<div class="empty-state">No savings goals yet 🌸<br>Tap + Add Goal to get started</div>';
 }
+
+function openGoalEdit(id){
+  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
+  _editingGoalId=id;
+  document.getElementById('goalModalTitle').textContent='Edit Goal 🎯';
+  document.getElementById('goalSaveBtn').textContent='Save Changes';
+  document.getElementById('goalName').value=g.name;
+  document.getElementById('goalTarget').value=g.target;
+  document.getElementById('goalSaved').value=g.totalSaved||0;
+  openModal('goalModal');
+}
+
 function updateGoalContrib(id,val){
   const m=getM(); if(!m.goalContribs) m.goalContribs={};
   const prev=parseFloat(m.goalContribs[id])||0, nv=parseFloat(val)||0;
   m.goalContribs[id]=nv;
   const g=S.globalGoals.find(x=>x.id===id);
-  if(g) g.totalSaved=Math.max(0,(g.totalSaved||0)+nv-prev);
+  if(g) g.totalSaved=Math.max(0,(g.beginBalance||0)+(g.totalSaved||0)-g.totalSaved+g.totalSaved+nv-prev);
+  // simpler: track contributions separately from beginBalance
+  if(g){
+    // recalc: beginBalance + sum of all contribs across all months
+    let allContribs=0;
+    S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[id])||0); });
+    g.totalSaved=(g.beginBalance||0)+allContribs;
+  }
   save(); updateSummary(); renderGoals(); updateOverview();
 }
-function removeGoal(id){S.globalGoals=S.globalGoals.filter(g=>g.id!==id);save();renderGoals();updateSummary();}
 
-// ── SAVINGS BOOK ─────────────────────────────────────────────────────────────
+function removeGoal(id){
+  if(!confirm('Remove this goal? This cannot be undone.')) return;
+  S.months.forEach(m=>{ if(m.goalContribs) delete m.goalContribs[id]; });
+  S.globalGoals=S.globalGoals.filter(g=>g.id!==id);
+  save(); renderGoals(); updateSummary();
+}
+
+// ── SAVINGS BOOK ──────────────────────────────────────────────────────────────
 function renderSavingsBook(){
   const entries=S.savingsBook||[];
   const total=entries.reduce((a,e)=>a+(e.type==='withdrawal'?-e.amount:e.amount),0);
   document.getElementById('savingsbookTotal').textContent=fmtN(Math.max(total,0));
   document.getElementById('savingsbookSub').textContent=entries.length+' entr'+(entries.length===1?'y':'ies')+' logged';
   const list=document.getElementById('deposit-list');
-  if(!entries.length){list.innerHTML='<div class="empty-state">No deposits yet 📖<br>Tap + to log your first cash deposit</div>';return;}
+  if(!entries.length){
+    // show set beginning balance prompt
+    list.innerHTML=`<div class="empty-state">No entries yet 📖<br>
+      <button onclick="openBookBalanceModal()" style="margin-top:10px;background:linear-gradient(135deg,var(--mint),var(--mint2));border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:8px 16px;border-radius:12px;cursor:pointer;">Set Beginning Balance</button>
+      <span style="display:block;margin-top:8px;font-size:11px;">or tap + to log your first deposit</span>
+    </div>`;
+    return;
+  }
   list.innerHTML='';
+  // Show set beginning balance button at top if first entry is not already a beginning balance
+  const hasBeginning=entries.some(e=>e.isBeginning);
+  if(!hasBeginning){
+    list.innerHTML+=`<div style="padding:10px 14px;border-bottom:1px solid var(--border);">
+      <button onclick="openBookBalanceModal()" style="width:100%;background:rgba(114,199,168,0.12);border:1px dashed var(--mint2);color:var(--mint2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:8px;border-radius:10px;cursor:pointer;">+ Set Beginning Balance</button>
+    </div>`;
+  }
   [...entries].reverse().forEach((e,ri)=>{
     const i=entries.length-1-ri, isW=e.type==='withdrawal';
     list.innerHTML+=`<div class="deposit-row">
-      <div class="deposit-dot" style="background:${isW?'var(--rose2)':'var(--mint2)'}"></div>
+      <div class="deposit-dot" style="background:${e.isBeginning?'var(--lavender2)':isW?'var(--rose2)':'var(--mint2)'}"></div>
       <div class="deposit-info">
-        <div class="deposit-note">${e.note||'Cash deposit'}</div>
+        <div class="deposit-note">${e.isBeginning?'📌 ':isW?'':''}${e.note||'Cash deposit'}</div>
         <div class="deposit-date">${e.date||'—'}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
@@ -841,8 +1003,22 @@ function renderSavingsBook(){
     </div>`;
   });
 }
-function removeDeposit(i){S.savingsBook.splice(i,1);save();renderSavingsBook();}
-function openDepositModal(){document.getElementById('depositDate').value=new Date().toISOString().split('T')[0];openModal('depositModal');}
+
+function openBookBalanceModal(){ openModal('bookBalanceModal'); }
+function confirmBookBalance(){
+  const amount=parseFloat(document.getElementById('bookBalanceAmount').value)||0;
+  if(!amount){ closeModal('bookBalanceModal'); return; }
+  const note=document.getElementById('bookBalanceNote').value.trim()||'Opening balance';
+  // remove any existing beginning balance entry
+  S.savingsBook=S.savingsBook.filter(e=>!e.isBeginning);
+  // add at the beginning of the array
+  S.savingsBook.unshift({amount,note,date:new Date().toISOString().split('T')[0],type:'deposit',isBeginning:true});
+  save(); renderSavingsBook(); closeModal('bookBalanceModal');
+  ['bookBalanceAmount','bookBalanceNote'].forEach(id=>document.getElementById(id).value='');
+}
+
+function removeDeposit(i){ S.savingsBook.splice(i,1); save(); renderSavingsBook(); }
+function openDepositModal(){ document.getElementById('depositDate').value=new Date().toISOString().split('T')[0]; openModal('depositModal'); }
 function confirmDeposit(){
   const amount=parseFloat(document.getElementById('depositAmount').value)||0; if(!amount) return;
   S.savingsBook.push({amount,note:document.getElementById('depositNote').value.trim(),date:document.getElementById('depositDate').value,type:document.getElementById('depositType').value});
@@ -850,7 +1026,7 @@ function confirmDeposit(){
   ['depositAmount','depositNote'].forEach(id=>document.getElementById(id).value='');
 }
 
-// ── HISTORY ──────────────────────────────────────────────────────────────────
+// ── HISTORY ───────────────────────────────────────────────────────────────────
 function renderHistory(){
   const list=document.getElementById('history-list'); list.innerHTML='';
   [...S.months].reverse().forEach((m,ri)=>{
@@ -873,9 +1049,26 @@ function renderHistory(){
   });
 }
 
-// ── MONTH NAV ────────────────────────────────────────────────────────────────
-function prevMonth(){if(S.currentIdx>0){S.currentIdx--;refreshAll();}}
-function nextMonth(){if(S.currentIdx<S.months.length-1){S.currentIdx++;refreshAll();}}
+// ── MONTH NAV ─────────────────────────────────────────────────────────────────
+function prevMonth(){ if(S.currentIdx>0){ S.currentIdx--; refreshAll(); } }
+function nextMonth(){
+  if(S.currentIdx<S.months.length-1){ S.currentIdx++; refreshAll(); return; }
+}
+
+// When navigating away from a non-current month back to any month,
+// recalculate carryover for the NEXT month (the one right after edited month).
+function recalcNextMonthCarryover(editedIdx){
+  const nextIdx=editedIdx+1;
+  if(nextIdx>=S.months.length) return;
+  const next=S.months[nextIdx];
+  // Only update carryover if next month was originally set with a carryover
+  // (i.e., it came from a rollover decision — not manually overridden to 0)
+  if(next.carryoverIsRollover){
+    const t=calcPeriodTotals(S.months[editedIdx]);
+    next.carryover=Math.max(t.balance,0);
+    save();
+  }
+}
 
 function openNewMonthModal(){
   const day=S.salaryDay||23, now=new Date();
@@ -898,8 +1091,8 @@ function selectRollover(choice){
 }
 function syncSplit(changed){
   const leftover=Math.max(calcPeriodTotals(getM()).balance,0);
-  if(changed==='carry'){const v=parseFloat(document.getElementById('splitCarry').value)||0;document.getElementById('splitSave').value=Math.max(0,leftover-v);}
-  else{const v=parseFloat(document.getElementById('splitSave').value)||0;document.getElementById('splitCarry').value=Math.max(0,leftover-v);}
+  if(changed==='carry'){ const v=parseFloat(document.getElementById('splitCarry').value)||0; document.getElementById('splitSave').value=Math.max(0,leftover-v); }
+  else{ const v=parseFloat(document.getElementById('splitSave').value)||0; document.getElementById('splitCarry').value=Math.max(0,leftover-v); }
 }
 
 function confirmNewMonth(){
@@ -913,46 +1106,104 @@ function confirmNewMonth(){
     else if(_rolloverChoice==='split'){
       carryover=parseFloat(document.getElementById('splitCarry').value)||0;
       toSavings=parseFloat(document.getElementById('splitSave').value)||0;
-      if(carryover+toSavings>leftover){carryover=leftover;toSavings=0;}
+      if(carryover+toSavings>leftover){ carryover=leftover; toSavings=0; }
     }
   }
-  if(toSavings>0){S.savingsBook.push({amount:toSavings,note:'Rollover from '+prev.name,date:new Date().toISOString().split('T')[0],type:'deposit'});}
-  const nm={name,income:[],variable:[],debtPayments:{},goalContribs:{},carryover};
+  if(toSavings>0){ S.savingsBook.push({amount:toSavings,note:'Rollover from '+prev.name,date:new Date().toISOString().split('T')[0],type:'deposit'}); }
+  const nm={name,income:[],variable:[],debtPayments:{},goalContribs:{},carryover,carryoverIsRollover:carryover>0};
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
   S.months.push(nm); S.currentIdx=S.months.length-1;
   save(); refreshAll(); closeModal('newMonthModal');
 }
 
-// ── MODALS ───────────────────────────────────────────────────────────────────
-function openGoalModal(){openModal('goalModal');}
-function confirmGoal(){
-  const name=document.getElementById('goalName').value.trim(), target=parseFloat(document.getElementById('goalTarget').value)||0, saved=parseFloat(document.getElementById('goalSaved').value)||0;
-  if(!name||!target) return;
-  S.globalGoals.push({id:'g'+Date.now(),name,target,totalSaved:saved});
-  save();renderGoals();updateSummary();closeModal('goalModal');
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openGoalModal(){
+  _editingGoalId=null;
+  document.getElementById('goalModalTitle').textContent='Add Savings Goal 🎯';
+  document.getElementById('goalSaveBtn').textContent='Add Goal';
   ['goalName','goalTarget','goalSaved'].forEach(id=>document.getElementById(id).value='');
+  openModal('goalModal');
 }
-function openDebtModal(){openModal('debtModal');}
+
+function confirmGoal(){
+  const name=document.getElementById('goalName').value.trim();
+  const target=parseFloat(document.getElementById('goalTarget').value)||0;
+  const savedInput=parseFloat(document.getElementById('goalSaved').value)||0;
+  if(!name) return;
+
+  if(_editingGoalId){
+    // editing existing goal
+    const g=S.globalGoals.find(x=>x.id===_editingGoalId); if(!g) return;
+    g.name=name;
+    g.target=target||g.target;
+    const oldBegin=g.beginBalance||0;
+    g.beginBalance=savedInput;
+    // recalc totalSaved: beginBalance + all monthly contributions
+    let allContribs=0;
+    S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[g.id])||0); });
+    g.totalSaved=savedInput+allContribs;
+    _editingGoalId=null;
+  } else {
+    // new goal
+    const id='g'+Date.now();
+    S.globalGoals.push({id,name,target,beginBalance:savedInput,totalSaved:savedInput});
+  }
+  save(); renderGoals(); updateSummary(); closeModal('goalModal');
+}
+
+function openDebtModal(){ openModal('debtModal'); }
 function confirmDebt(){
   const name=document.getElementById('debtName').value.trim(), balance=parseFloat(document.getElementById('debtBalance').value)||0;
   if(!name||!balance) return;
   S.globalDebts.push({id:'d'+Date.now(),name,balance,originalBalance:balance,minPayment:parseFloat(document.getElementById('debtPayment').value)||0,rate:parseFloat(document.getElementById('debtRate').value)||0,totalPaid:0});
-  save();renderDebts();updateSummary();closeModal('debtModal');
+  save(); renderDebts(); updateSummary(); closeModal('debtModal');
   ['debtName','debtBalance','debtPayment','debtRate'].forEach(id=>document.getElementById(id).value='');
 }
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
 
 function showTab(name,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active');
-  if(name==='overview') updateOverview();
-  if(name==='history') renderHistory();
+  if(name==='overview')    updateOverview();
+  if(name==='history')     renderHistory();
   if(name==='savingsbook') renderSavingsBook();
 }
-function resetAll(){if(confirm('Reset all data? This cannot be undone.')){localStorage.removeItem(KEY);init();refreshAll();}}
+
+function resetAll(){
+  if(confirm('Reset all data? This cannot be undone.')){ localStorage.removeItem(KEY); init(); refreshAll(); }
+}
+
+// ── PREVIOUS MONTH EDIT — recalc carryover on any change ─────────────────────
+// We hook into save() to recalculate carryovers whenever data changes in a past month
+const _origSave=save;
+// Extend syncBva and syncFixed to also recalc next month carryover
+function onDataChange(){
+  const editedIdx=S.currentIdx;
+  if(editedIdx < S.months.length-1){
+    recalcNextMonthCarryover(editedIdx);
+    // Also update the current new month summary if we're viewing it
+    updateSummary(); updateOverview();
+  }
+}
+
+// Patch syncBva and syncFixed to trigger recalc
+const _origSyncBva=syncBva;
+function syncBva(cid,type){
+  const m=getM(), rows=document.querySelectorAll('#'+cid+' .bva-row');
+  m[type]=Array.from(rows).map(r=>{
+    const inp=r.querySelectorAll('.bva-input');
+    const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
+    const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
+    return{name:r.querySelector('.bva-name').value,budgeted:b,actual:a};
+  }).filter(r=>r.name||r.budgeted||r.actual);
+  save();
+  if(S.currentIdx < S.months.length-1) recalcNextMonthCarryover(S.currentIdx);
+  updateSummary(); updateBvaSummary(type); updateOverview();
+}
 
 function refreshAll(){
   updatePeriodDisplay(); renderAllRows(); renderDebts(); renderGoals();
