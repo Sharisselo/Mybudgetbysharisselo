@@ -284,13 +284,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div id="tab-variable" class="tab-content">
   <div class="section">
     <div class="section-title">Variable Expenses</div>
-    <div class="section-sub">Budget vs what you actually spent</div>
+    <div class="section-sub">Set a budget per category — log daily spend and it accumulates</div>
     <div class="card">
-      <div class="card-header"><span class="card-title">Variable Costs</span><button class="add-btn" onclick="addBvaRow('variable-rows','variable')">+</button></div>
-      <div class="bva-col-headers"><span class="bva-col-label">Category</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span></span></div>
+      <div class="card-header">
+        <span class="card-title">Categories</span>
+        <button class="add-btn" onclick="addBvaRow('variable-rows','variable')">+</button>
+      </div>
+      <div class="bva-col-headers">
+        <span class="bva-col-label">Category</span>
+        <span class="bva-col-label">Budgeted</span>
+        <span class="bva-col-label">Actual</span>
+        <span></span>
+      </div>
       <div id="variable-rows"></div>
     </div>
     <div id="variable-summary" style="margin-top:8px;"></div>
+    <!-- Daily expense log -->
+    <div class="card" style="margin-top:4px;">
+      <div class="card-header">
+        <span class="card-title">Daily Expenses</span>
+        <button class="add-btn" onclick="openDailyExpenseModal()">+</button>
+      </div>
+      <div id="daily-expense-list"><div class="empty-state" style="padding:20px 18px;">No daily expenses logged yet<br>Tap + to add one</div></div>
+    </div>
   </div>
 </div>
 
@@ -557,6 +573,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Daily Expense Modal -->
+<div class="modal-overlay" id="dailyExpenseModal">
+  <div class="modal">
+    <div class="modal-title">Log Expense 🛒</div>
+    <div class="modal-sub">Pick a category — amount adds to its actual total</div>
+    <div class="field-row"><div class="field-label">Category</div>
+      <select class="modal-input" id="dailyExpenseCategory" style="cursor:pointer;"><option value="">— select category —</option></select>
+    </div>
+    <div class="field-row"><div class="field-label">Amount (XCG)</div><input class="modal-input" id="dailyExpenseAmount" type="number" placeholder="0"/></div>
+    <div class="field-row"><div class="field-label">Note (optional)</div><input class="modal-input" id="dailyExpenseNote" placeholder="e.g. Lunch, Grocery run"/></div>
+    <div class="field-row"><div class="field-label">Date</div><input class="modal-input" id="dailyExpenseDate" type="date"/></div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('dailyExpenseModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="confirmDailyExpense()">Add Expense</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -652,10 +686,14 @@ function syncBva(cid,type){
 function addFixedRow(cid,name='',budgeted='',actual='',paid=false){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='fixed-row'+(paid?' paid-row':'');
+  const bFmt=budgeted?formatNum(budgeted):'';
+  const aFmt=actual?formatNum(actual):'';
   row.innerHTML=`<button class="paid-toggle${paid?' paid':''}" onclick="togglePaid(this)">${paid?'✓':''}</button>
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncFixed()"/>
-    <input class="bva-input" type="number" placeholder="0" value="${budgeted}" oninput="syncFixed()"/>
-    <input class="bva-input actual" type="number" placeholder="0" value="${actual}" oninput="syncFixed()"/>
+    <input class="bva-input" placeholder="0" value="${bFmt}"
+      onfocus="unfmtInputFixed(this)" onblur="fmtInputFixed(this)" oninput="syncFixed()"/>
+    <input class="bva-input actual" placeholder="0" value="${aFmt}"
+      onfocus="unfmtInputFixed(this)" onblur="fmtInputFixed(this)" oninput="syncFixed()"/>
     <button class="del-btn" onclick="this.parentElement.remove();syncFixed()">✕</button>`;
   c.appendChild(row); syncFixed();
 }
@@ -664,11 +702,24 @@ function togglePaid(btn){
   btn.classList.toggle('paid',!wasPaid); btn.textContent=wasPaid?'':'✓';
   row.classList.toggle('paid-row',!wasPaid); syncFixed();
 }
+function unfmtInputFixed(el){
+  const raw=parseFloat(String(el.value).replace(/,/g,''))||0;
+  el.value=raw===0?'':raw; el.type='number';
+}
+function fmtInputFixed(el){
+  el.type='text';
+  const raw=parseFloat(el.value)||0;
+  el.value=raw===0?'':formatNum(raw);
+  syncFixed();
+}
 function syncFixed(){
   const m=getM(), rows=document.querySelectorAll('#fixed-rows .fixed-row');
   m.fixed=Array.from(rows).map(r=>{
-    const inp=r.querySelectorAll('input[type=number]'), paid=r.querySelector('.paid-toggle').classList.contains('paid');
-    return{name:r.querySelector('.bva-name').value, budgeted:parseFloat(inp[0].value)||0, actual:parseFloat(inp[1].value)||0, paid};
+    const inp=r.querySelectorAll('.bva-input');
+    const paid=r.querySelector('.paid-toggle').classList.contains('paid');
+    return{name:r.querySelector('.bva-name').value,
+      budgeted:parseFloat(String(inp[0].value).replace(/,/g,''))||0,
+      actual:parseFloat(String(inp[1].value).replace(/,/g,''))||0, paid};
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); renderFixedSummary(); updateOverview();
 }
@@ -699,7 +750,7 @@ function renderAllRows(){
   document.getElementById('variable-rows').innerHTML='';
   (m.variable||[]).forEach(r=>addBvaRow('variable-rows','variable',r.name,r.budgeted,r.actual));
   if(!(m.variable||[]).length) addBvaRow('variable-rows','variable');
-  renderFixedSummary(); updateBvaSummary('variable');
+  renderFixedSummary(); updateBvaSummary('variable'); renderDailyExpenses();
 }
 
 function updateBvaSummary(type){
@@ -1264,6 +1315,90 @@ function refreshAll(){
   updatePeriodDisplay(); renderAllRows(); renderDebts(); renderGoals();
   renderSavingsBook(); updateSummary(); updateOverview(); renderHistory();
 }
+
+// ── DAILY EXPENSES ────────────────────────────────────────────────────────────
+function openDailyExpenseModal(){
+  // Populate category dropdown from current variable rows
+  const m=getM();
+  const cats=(m.variable||[]).map(r=>r.name).filter(Boolean);
+  const sel=document.getElementById('dailyExpenseCategory');
+  sel.innerHTML='<option value="">— select category —</option>';
+  cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+  document.getElementById('dailyExpenseDate').value=new Date().toISOString().split('T')[0];
+  openModal('dailyExpenseModal');
+}
+
+function confirmDailyExpense(){
+  const cat=document.getElementById('dailyExpenseCategory').value;
+  const amount=parseFloat(document.getElementById('dailyExpenseAmount').value)||0;
+  if(!cat||!amount) return;
+  const note=document.getElementById('dailyExpenseNote').value.trim();
+  const date=document.getElementById('dailyExpenseDate').value;
+  const m=getM();
+  if(!m.dailyExpenses) m.dailyExpenses=[];
+  m.dailyExpenses.push({cat,amount,note,date});
+  // Accumulate into variable actual
+  const varRow=m.variable.find(r=>r.name===cat);
+  if(varRow){ varRow.actual=(varRow.actual||0)+amount; }
+  save(); renderAllRows(); renderDailyExpenses(); updateSummary(); updateOverview();
+  closeModal('dailyExpenseModal');
+  ['dailyExpenseAmount','dailyExpenseNote'].forEach(id=>document.getElementById(id).value='');
+}
+
+function renderDailyExpenses(){
+  const m=getM();
+  const entries=(m.dailyExpenses||[]);
+  const list=document.getElementById('daily-expense-list');
+  if(!list) return;
+  if(!entries.length){
+    list.innerHTML='<div class="empty-state" style="padding:20px 18px;">No daily expenses logged yet<br>Tap + to add one</div>';
+    return;
+  }
+  // Group by date descending
+  const byDate={};
+  entries.forEach((e,i)=>{ if(!byDate[e.date]) byDate[e.date]=[]; byDate[e.date].push({...e,idx:i}); });
+  const sortedDates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  let html='';
+  sortedDates.forEach(date=>{
+    const dayTotal=byDate[date].reduce((a,e)=>a+e.amount,0);
+    html+=`<div style="padding:6px 14px 2px;background:rgba(200,170,155,0.06);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:10px;font-weight:600;color:var(--text2);">${formatDisplayDate(date)}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${fmtN(dayTotal)}</span>
+    </div>`;
+    byDate[date].forEach(e=>{
+      html+=`<div class="deposit-row">
+        <div class="deposit-dot" style="background:var(--peach2);"></div>
+        <div class="deposit-info">
+          <div class="deposit-note">${e.note||e.cat}</div>
+          <div class="deposit-date" style="color:var(--peach2);">${e.cat}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="deposit-amount positive" style="color:var(--text);">−${fmtN(e.amount)}</div>
+          <button class="del-btn" onclick="removeDailyExpense(${e.idx})">✕</button>
+        </div>
+      </div>`;
+    });
+  });
+  list.innerHTML=html;
+}
+
+function removeDailyExpense(idx){
+  const m=getM();
+  if(!m.dailyExpenses||!m.dailyExpenses[idx]) return;
+  const e=m.dailyExpenses[idx];
+  // Subtract from variable actual
+  const varRow=m.variable.find(r=>r.name===e.cat);
+  if(varRow){ varRow.actual=Math.max(0,(varRow.actual||0)-e.amount); }
+  m.dailyExpenses.splice(idx,1);
+  save(); renderAllRows(); renderDailyExpenses(); updateSummary(); updateOverview();
+}
+
+function formatDisplayDate(dateStr){
+  if(!dateStr) return '—';
+  const d=new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
 
 load();
 document.getElementById('salaryDayInput').value=S.salaryDay||23;
