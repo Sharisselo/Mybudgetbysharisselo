@@ -934,7 +934,7 @@ function renderDebts(){
       <div class="debt-this-month">
         <div class="debt-month-label">This period — amount paid</div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="number" value="${thisPaid||''}" placeholder="${fmtN(pay)}" class="small-input" oninput="updateDebtPayment('${d.id}',this.value)"/>
+          <input type="number" value="${thisPaid||''}" placeholder="${fmtN(pay)}" class="small-input" onchange="updateDebtPayment('${d.id}',this.value)"/>
         </div>
       </div>
       <div class="debt-actions">
@@ -1006,7 +1006,7 @@ function renderGoals(){
     const ts=g.totalSaved||0, tgt=parseFloat(g.target)||0;
     const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
     const rem=Math.max(tgt-ts,0);
-    list.innerHTML+=`<div class="goal-card">
+    list.innerHTML+=`<div class="goal-card" data-gid="${g.id}">
       <div class="goal-header">
         <div><div class="goal-name">${g.name}</div>
           <div style="font-size:10px;color:var(--text3);margin-top:2px;">Beginning balance: ${fmtN(g.beginBalance||0)}</div>
@@ -1025,7 +1025,7 @@ function renderGoals(){
       <div class="debt-this-month" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
         <div class="debt-month-label">Add to savings this period</div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="number" value="${tc||''}" placeholder="0" class="small-input" oninput="updateGoalContrib('${g.id}',this.value)"/>
+          <input type="number" value="${tc||''}" placeholder="0" class="small-input" onchange="updateGoalContrib('${g.id}',this.value)"/>
         </div>
       </div>
       <div class="debt-actions">
@@ -1061,7 +1061,26 @@ function updateGoalContrib(id,val){
     S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[id])||0); });
     g.totalSaved=(g.beginBalance||0)+allContribs;
   }
-  save(); updateSummary(); renderGoals(); updateOverview();
+  save(); updateSummary(); updateOverview();
+  // Update just the progress display without re-rendering inputs
+  renderGoalProgress(id);
+}
+
+function renderGoalProgress(id){
+  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
+  const ts=g.totalSaved||0, tgt=parseFloat(g.target)||0;
+  const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
+  const rem=Math.max(tgt-ts,0);
+  // Find the goal card by scanning for data-goal-id attribute
+  const card=document.querySelector(`.goal-card[data-gid="${id}"]`); if(!card) return;
+  const pctEl=card.querySelector('.goal-pct'); if(pctEl) pctEl.textContent=pct+'%';
+  const bar=card.querySelector('.progress-fill'); if(bar) bar.style.width=pct+'%';
+  const labels=card.querySelectorAll('.progress-label span');
+  if(labels[0]) labels[0].textContent=fmtN(ts)+' saved';
+  const vals=card.querySelectorAll('.goal-total-val');
+  if(vals[0]) vals[0].textContent=fmtN(ts);
+  if(vals[1]) vals[1].textContent=fmtN(rem);
+  if(vals[2]) vals[2].textContent=pct+'%';
 }
 
 function removeGoal(id){
