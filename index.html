@@ -62,7 +62,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .add-btn:hover{transform:scale(1.1);}
 
 /* BVA rows — income & variable use formatted display inputs */
-.bva-row{display:grid;grid-template-columns:1fr 88px 88px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
+.bva-row{display:grid;grid-template-columns:1fr 80px 80px 68px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
 .bva-row:last-child{border-bottom:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .bva-name{font-size:12px;color:var(--text);background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;width:100%;min-width:0;}
@@ -72,19 +72,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bva-input.actual:focus{border-color:var(--mint2);}
 .del-btn{background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;transition:color 0.2s;}
 .del-btn:hover{color:var(--rose2);}
-.bva-col-headers{display:grid;grid-template-columns:1fr 88px 88px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.bva-col-headers{display:grid;grid-template-columns:1fr 80px 80px 68px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .bva-col-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);text-align:right;}
 .bva-col-label:first-child{text-align:left;}
+
+.left-badge{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:3px 6px;border-radius:8px;white-space:nowrap;text-align:center;display:inline-block;}
+.left-pos{background:rgba(74,158,122,0.13);color:var(--green);}
+.left-neg{background:rgba(212,96,122,0.13);color:var(--red);}
+.left-zero{background:rgba(200,170,155,0.13);color:var(--text3);}
+.row-left-badge{display:flex;align-items:center;justify-content:center;}
 .diff-badge{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:8px;white-space:nowrap;}
 .diff-over{background:rgba(212,96,122,0.12);color:var(--red);}
 .diff-under{background:rgba(74,158,122,0.12);color:var(--green);}
 .diff-zero{background:rgba(200,170,155,0.12);color:var(--text3);}
-.fixed-row{display:grid;grid-template-columns:28px 1fr 80px 80px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;transition:background 0.3s;}
+.fixed-row{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;transition:background 0.3s;}
 .fixed-row:last-child{border-bottom:none;}
 .fixed-row.paid-row{background:rgba(168,223,200,0.08);}
 .paid-toggle{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.25s;flex-shrink:0;}
 .paid-toggle.paid{background:linear-gradient(135deg,var(--mint),var(--mint2));border-color:var(--mint2);color:#fff;}
-.fixed-col-headers{display:grid;grid-template-columns:28px 1fr 80px 80px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.fixed-col-headers{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .progress-wrap{margin:10px 0 3px;}
 .progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:5px;}
 .progress-bar{height:7px;background:rgba(200,170,155,0.15);border-radius:4px;overflow:hidden;}
@@ -260,7 +266,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="section-sub">Add your income sources for this period</div>
     <div class="card">
       <div class="card-header"><span class="card-title">Income Sources</span><button class="add-btn" onclick="addBvaRow('income-rows','income')">+</button></div>
-      <div class="bva-col-headers"><span class="bva-col-label">Source</span><span class="bva-col-label">Expected</span><span class="bva-col-label">Actual</span><span></span></div>
+      <div class="bva-col-headers"><span class="bva-col-label">Source</span><span class="bva-col-label">Expected</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span></span></div>
       <div id="income-rows"></div>
     </div>
   </div>
@@ -273,7 +279,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="section-sub">Tap ✓ when paid — it counts toward actual spend</div>
     <div class="card">
       <div class="card-header"><span class="card-title">Monthly Fixed Costs</span><button class="add-btn" onclick="addFixedRow('fixed-rows')">+</button></div>
-      <div class="fixed-col-headers"><span class="bva-col-label"></span><span class="bva-col-label">Description</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span></span></div>
+      <div class="fixed-col-headers"><span class="bva-col-label"></span><span class="bva-col-label">Description</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span></span></div>
       <div id="fixed-rows"></div>
     </div>
     <div id="fixed-summary" style="margin-top:8px;"></div>
@@ -294,6 +300,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="bva-col-label">Category</span>
         <span class="bva-col-label">Budgeted</span>
         <span class="bva-col-label">Actual</span>
+        <span class="bva-col-label">Left</span>
         <span></span>
       </div>
       <div id="variable-rows"></div>
@@ -644,16 +651,53 @@ function addBvaRow(cid, type, name='', budgeted='', actual=''){
   row.className='bva-row';
   const bFmt = budgeted ? formatNum(budgeted) : '';
   const aFmt = actual   ? formatNum(actual)   : '';
+  const left=budgeted&&actual?parseFloat(budgeted)-parseFloat(actual):budgeted?parseFloat(budgeted):0;
+  const leftBadge=_leftBadge(left);
   row.innerHTML=`
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncBva('${cid}','${type}')"/>
     <input class="bva-input" placeholder="0" value="${bFmt}"
       onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
+    <div class="row-left-badge">${leftBadge}</div>
     <button class="del-btn" onclick="this.parentElement.remove();syncBva('${cid}','${type}')">✕</button>`;
   c.appendChild(row); syncBva(cid,type);
 }
 
+
+function _leftBadge(left){
+  if(!left && left!==0) return '<span class="left-badge left-zero">—</span>';
+  const cls = left>0?'left-pos':left<0?'left-neg':'left-zero';
+  const label = left===0?'✓':(left>0?'+':'')+fmtN(left);
+  return `<span class="left-badge ${cls}">${label}</span>`;
+}
+
+// Re-render only the left badges on existing rows after sync (no full re-render)
+function updateRowLeftBadges(cid, type){
+  const m=getM();
+  const rows=document.querySelectorAll('#'+cid+' .bva-row');
+  const data=m[type]||[];
+  rows.forEach((row,i)=>{
+    const badge=row.querySelector('.row-left-badge'); if(!badge) return;
+    const d=data[i]; if(!d) return;
+    const left=d.budgeted-(d.actual||0);
+    badge.innerHTML=_leftBadge(left);
+  });
+}
+
+function updateFixedLeftBadges(){
+  const m=getM();
+  const rows=document.querySelectorAll('#fixed-rows .fixed-row');
+  const data=m.fixed||[];
+  rows.forEach((row,i)=>{
+    const badge=row.querySelector('.row-left-badge'); if(!badge) return;
+    const d=data[i]; if(!d) return;
+    // remaining = budgeted minus actual (or budgeted if no actual entered)
+    const spent=d.actual||d.budgeted;
+    const left=d.budgeted-spent;
+    badge.innerHTML=_leftBadge(left);
+  });
+}
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 function formatNum(n){ const v=parseFloat(n)||0; return v===0?'':v.toLocaleString('en-US',{maximumFractionDigits:2}); }
 
@@ -679,7 +723,7 @@ function syncBva(cid,type){
     const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
     return{name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
   }).filter(r=>r.name||r.budgeted||r.actual);
-  save(); updateSummary(); updateBvaSummary(type); updateOverview();
+  save(); updateSummary(); updateBvaSummary(type); updateOverview(); updateRowLeftBadges(cid,type);
 }
 
 // ── FIXED ROWS ────────────────────────────────────────────────────────────────
@@ -688,12 +732,15 @@ function addFixedRow(cid,name='',budgeted='',actual='',paid=false){
   row.className='fixed-row'+(paid?' paid-row':'');
   const bFmt=budgeted?formatNum(budgeted):'';
   const aFmt=actual?formatNum(actual):'';
+  const fLeft=budgeted?(parseFloat(budgeted)-(parseFloat(actual)||parseFloat(budgeted))):0;
+  const fLeftBadge=_leftBadge(fLeft);
   row.innerHTML=`<button class="paid-toggle${paid?' paid':''}" onclick="togglePaid(this)">${paid?'✓':''}</button>
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncFixed()"/>
     <input class="bva-input" placeholder="0" value="${bFmt}"
       onfocus="unfmtInputFixed(this)" onblur="fmtInputFixed(this)" oninput="syncFixed()"/>
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInputFixed(this)" onblur="fmtInputFixed(this)" oninput="syncFixed()"/>
+    <div class="row-left-badge">${fLeftBadge}</div>
     <button class="del-btn" onclick="this.parentElement.remove();syncFixed()">✕</button>`;
   c.appendChild(row); syncFixed();
 }
@@ -721,21 +768,43 @@ function syncFixed(){
       budgeted:parseFloat(String(inp[0].value).replace(/,/g,''))||0,
       actual:parseFloat(String(inp[1].value).replace(/,/g,''))||0, paid};
   }).filter(r=>r.name||r.budgeted||r.actual);
-  save(); updateSummary(); renderFixedSummary(); updateOverview();
+  save(); updateSummary(); renderFixedSummary(); updateOverview(); updateFixedLeftBadges();
 }
 function renderFixedSummary(){
   const f=getM().fixed||[];
   const total=f.reduce((a,r)=>a+r.budgeted,0);
-  const paid=f.filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
+  const paidAmt=f.filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
   const unpaid=f.filter(r=>!r.paid).reduce((a,r)=>a+r.budgeted,0);
-  const pct=total>0?Math.min(Math.round(paid/total*100),100):0;
+  const pct=total>0?Math.min(Math.round(paidAmt/total*100),100):0;
+  // per-row breakdown
+  let rowsHtml='';
+  f.filter(r=>r.name||r.budgeted).forEach(r=>{
+    const spent=r.actual||r.budgeted; const left=r.budgeted-spent;
+    const lc=left>0?'var(--green)':left<0?'var(--red)':'var(--text3)';
+    const pctR=r.budgeted>0?Math.min(Math.round(spent/r.budgeted*100),100):0;
+    rowsHtml+=`<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="font-size:11px;color:var(--text);display:flex;align-items:center;gap:5px;">
+          ${r.paid?'<span style="color:var(--mint2);font-size:10px;">✓</span>':'<span style="color:var(--text3);font-size:10px;">○</span>'}
+          ${r.name||'—'}
+        </span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);">${fmtN(spent)} / ${fmtN(r.budgeted)}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:7px;background:${left>=0?'rgba(74,158,122,0.12)':'rgba(212,96,122,0.12)'};color:${lc};">${left>=0?'+':''+(left===0?'':'')}${left===0?'✓':fmtN(Math.abs(left))+(left<0?' over':' left')}</span>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${pctR>=100?'fill-rose':'fill-green'}" style="width:${Math.min(pctR,100)}%"></div></div>
+    </div>`;
+  });
   document.getElementById('fixed-summary').innerHTML=`<div class="card" style="padding:14px;">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-      <span style="font-size:11px;color:var(--text2)">Paid: <strong style="color:var(--green)">${fmtN(paid)}</strong></span>
-      <span style="font-size:11px;color:var(--text2)">Remaining: <strong style="color:var(--red)">${fmtN(unpaid)}</strong></span>
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:11px;color:var(--text2)">Paid: <strong style="color:var(--green)">${fmtN(paidAmt)}</strong></span>
+      <span style="font-size:11px;color:var(--text2)">Still owed: <strong style="color:var(--red)">${fmtN(unpaid)}</strong></span>
       <span style="font-size:11px;color:var(--text2)">${pct}% done</span>
     </div>
-    <div class="progress-bar"><div class="progress-fill fill-green" style="width:${pct}%"></div></div>
+    <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill fill-green" style="width:${pct}%"></div></div>
+    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Per Category</div>
+    ${rowsHtml||'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">Add fixed expenses above</div>'}
   </div>`;
 }
 
@@ -757,13 +826,32 @@ function updateBvaSummary(type){
   if(type!=='variable') return;
   const rows=getM().variable||[];
   const tB=rows.reduce((a,r)=>a+r.budgeted,0), tA=rows.reduce((a,r)=>a+r.actual,0), diff=tB-tA;
+  // per-row breakdown
+  let rowsHtml='';
+  rows.filter(r=>r.name||r.budgeted).forEach(r=>{
+    const left=r.budgeted-r.actual;
+    const lc=left>0?'var(--green)':left<0?'var(--red)':'var(--text3)';
+    const pctR=r.budgeted>0?Math.min(Math.round(r.actual/r.budgeted*100),100):0;
+    rowsHtml+=`<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="font-size:11px;color:var(--text);">${r.name||'—'}</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);">${fmtN(r.actual)} / ${fmtN(r.budgeted)}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:7px;background:${left>=0?'rgba(74,158,122,0.12)':'rgba(212,96,122,0.12)'};color:${lc};">${left===0?'✓':fmtN(Math.abs(left))+(left<0?' over':' left')}</span>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${pctR>=100?'fill-rose':'fill-green'}" style="width:${Math.min(pctR,100)}%"></div></div>
+    </div>`;
+  });
   document.getElementById('variable-summary').innerHTML=`<div class="card" style="padding:14px;">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
       <span style="font-size:11px;color:var(--text2)">Budgeted: <strong>${fmtN(tB)}</strong></span>
       <span style="font-size:11px;color:var(--text2)">Actual: <strong>${fmtN(tA)}</strong></span>
       <span class="diff-badge ${diff>=0?'diff-under':'diff-over'}">${diff>=0?'Under '+fmtN(diff):'Over '+fmtN(Math.abs(diff))}</span>
     </div>
-    <div class="progress-bar"><div class="progress-fill ${tA>tB?'fill-rose':'fill-green'}" style="width:${tB>0?Math.min(tA/tB*100,100):0}%"></div></div>
+    <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill ${tA>tB?'fill-rose':'fill-green'}" style="width:${tB>0?Math.min(tA/tB*100,100):0}%"></div></div>
+    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Per Category</div>
+    ${rowsHtml||'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">Add categories above</div>'}
   </div>`;
 }
 
