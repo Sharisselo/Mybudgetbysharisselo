@@ -883,20 +883,21 @@ function updateSummary(){
   const totalIncome=t.incActual+t.carryover;
   // Actual spend = fixed paid + variable actual
   const actualSpend=t.fixedActual+t.varActual;
-  // Saved = all-time goals total + all-time savings book balance
-  const totalSaved=t.goalsAllTime+t.bookAllTime;
-  // Remaining = income − actual spend − goal contributions this period − debt paid
-  const remaining=totalIncome-actualSpend-t.goalSaved-t.debtPaid;
+  // Saved = goal contributions logged this period only
+  // (Savings book is physical cash tracked separately — not deducted from budget)
+  const savedThisPeriod=t.goalSaved;
+  // Remaining = Income − Actual Spend − Saved − Debt paid
+  // Always balances: Income = Spend + Saved + Debt + Remaining
+  const remaining=totalIncome-actualSpend-savedThisPeriod-t.debtPaid;
 
   document.getElementById('sumIncome').textContent=fmtN(totalIncome);
   document.getElementById('sumExpenses').textContent=fmtN(actualSpend);
   document.getElementById('sumBalance').textContent=(remaining<0?'-':'')+fmtN(remaining);
-  document.getElementById('sumSaved').textContent=fmtN(totalSaved);
+  document.getElementById('sumSaved').textContent=fmtN(savedThisPeriod);
 
-  // Update subtitles to be clear
   document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
-  document.querySelector('.sum-card.savings .sum-sub').textContent='Goals + savings book';
-  document.querySelector('.sum-card.balance .sum-sub').textContent='Income minus spend & saved';
+  document.querySelector('.sum-card.savings .sum-sub').textContent='Goal contributions this period';
+  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spend − saved';
 
   // Big balance on overview
   const bb=document.getElementById('bigBalance');
