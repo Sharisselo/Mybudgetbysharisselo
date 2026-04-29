@@ -886,9 +886,9 @@ function updateSummary(){
   // Saved = goal contributions logged this period only
   // (Savings book is physical cash tracked separately — not deducted from budget)
   const savedThisPeriod=t.goalSaved;
-  // Remaining = Income − Actual Spend − Saved − Debt paid
-  // Always balances: Income = Spend + Saved + Debt + Remaining
-  const remaining=totalIncome-actualSpend-savedThisPeriod-t.debtPaid;
+  // Remaining = Income − Fixed Actual − Variable Actual only
+  // Debt, savings and savings book are separate/informational
+  const remaining=totalIncome-actualSpend;
 
   document.getElementById('sumIncome').textContent=fmtN(totalIncome);
   document.getElementById('sumExpenses').textContent=fmtN(actualSpend);
@@ -897,7 +897,7 @@ function updateSummary(){
 
   document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
   document.querySelector('.sum-card.savings .sum-sub').textContent='Goal contributions this period';
-  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spend − saved';
+  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − fixed − variable';
 
   // Big balance on overview
   const bb=document.getElementById('bigBalance');
@@ -992,7 +992,7 @@ function updateBvaTable(){
   }
 
   // Net remaining row — actual income minus all actual spend and saved
-  const trueNet=incActual+t.carryover-t.fixedActual-t.varActual-savedThisPeriod-t.debtPaid;
+  const trueNet=incActual+t.carryover-t.fixedActual-t.varActual;
   html+=`<div class="bva-ov-row total-row">
     <span>Net Remaining</span>
     <span class="bva-ov-val">${fmtN(netBudget)}</span>
