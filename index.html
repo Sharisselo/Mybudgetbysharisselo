@@ -859,27 +859,52 @@ function updateBvaSummary(type){
 function calcPeriodTotals(m){
   const incActual=(m.income||[]).reduce((a,r)=>a+r.actual,0);
   const carryover=parseFloat(m.carryover)||0;
+  // Fixed actual: only paid rows (actual amount if entered, else budgeted)
   const fixedActual=(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
   const varActual=(m.variable||[]).reduce((a,r)=>a+r.actual,0);
   const debtPaid=Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
   const goalSaved=Object.values(m.goalContribs||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
-  const totalSpent=fixedActual+varActual+debtPaid;
-  const balance=incActual+carryover-totalSpent-goalSaved;
-  return{incActual,carryover,fixedActual,varActual,debtPaid,goalSaved,totalSpent,balance};
+  // Actual spend = fixed (paid) + variable only — debt is tracked separately
+  const totalSpent=fixedActual+varActual;
+  // Saved this period = goal contributions + savings book deposits this period
+  const bookThisPeriod=(S.savingsBook||[])
+    .filter(e=>e.type==='deposit'&&!e.isBeginning)
+    .reduce((a,e)=>a+e.amount,0);
+  // All-time savings totals (for Saved card)
+  const goalsAllTime=S.globalGoals.reduce((a,g)=>a+(g.totalSaved||0),0);
+  const bookAllTime=Math.max((S.savingsBook||[]).reduce((a,e)=>a+(e.type==='withdrawal'?-e.amount:e.amount),0),0);
+  // Remaining = income + carryover − actual spend − goal contributions this period − debt paid
+  const balance=incActual+carryover-totalSpent-goalSaved-debtPaid;
+  return{incActual,carryover,fixedActual,varActual,debtPaid,goalSaved,totalSpent,balance,goalsAllTime,bookAllTime,bookThisPeriod};
 }
 
 function updateSummary(){
   const t=calcPeriodTotals(getM());
-  document.getElementById('sumIncome').textContent=fmtN(t.incActual+t.carryover);
-  document.getElementById('sumExpenses').textContent=fmtN(t.totalSpent);
-  document.getElementById('sumBalance').textContent=fmtN(t.balance);
-  document.getElementById('sumSaved').textContent=fmtN(t.goalSaved);
+  const totalIncome=t.incActual+t.carryover;
+  // Actual spend = fixed paid + variable actual
+  const actualSpend=t.fixedActual+t.varActual;
+  // Saved = all-time goals total + all-time savings book balance
+  const totalSaved=t.goalsAllTime+t.bookAllTime;
+  // Remaining = income − actual spend − goal contributions this period − debt paid
+  const remaining=totalIncome-actualSpend-t.goalSaved-t.debtPaid;
+
+  document.getElementById('sumIncome').textContent=fmtN(totalIncome);
+  document.getElementById('sumExpenses').textContent=fmtN(actualSpend);
+  document.getElementById('sumBalance').textContent=(remaining<0?'-':'')+fmtN(remaining);
+  document.getElementById('sumSaved').textContent=fmtN(totalSaved);
+
+  // Update subtitles to be clear
+  document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
+  document.querySelector('.sum-card.savings .sum-sub').textContent='Goals + savings book';
+  document.querySelector('.sum-card.balance .sum-sub').textContent='Income minus spend & saved';
+
+  // Big balance on overview
   const bb=document.getElementById('bigBalance');
-  bb.textContent=(t.balance<0?'-':'')+fmtN(t.balance);
-  bb.className='balance-amount '+(t.balance>=0?'positive':'negative');
-  document.getElementById('bigBalanceSub').textContent=t.balance>=0
-    ?`You have ${fmtN(t.balance)} left this period`
-    :`Over budget by ${fmtN(Math.abs(t.balance))}`;
+  bb.textContent=(remaining<0?'-':'')+fmtN(remaining);
+  bb.className='balance-amount '+(remaining>=0?'positive':'negative');
+  document.getElementById('bigBalanceSub').textContent=remaining>=0
+    ?`You have ${fmtN(remaining)} left this period`
+    :`Over budget by ${fmtN(Math.abs(remaining))}`;
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────────────────
@@ -920,25 +945,60 @@ function updateBvaTable(){
   const incActual=t.incActual+t.carryover;
   const fixedBudget=(m.fixed||[]).reduce((a,r)=>a+r.budgeted,0);
   const varBudget=(m.variable||[]).reduce((a,r)=>a+r.budgeted,0);
+  // Saved this period (goal contributions)
+  const savedThisPeriod=t.goalSaved;
+  // Net = income − fixed − variable − saved this period
   const netBudget=incBudget-fixedBudget-varBudget;
-  const netActual=incActual-t.fixedActual-t.varActual;
+  const netActual=incActual-t.fixedActual-t.varActual-savedThisPeriod;
+
   const rows=[
-    {label:'Income',  budget:incBudget,   actual:incActual,    income:true},
-    {label:'Fixed',   budget:fixedBudget, actual:t.fixedActual,income:false},
-    {label:'Variable',budget:varBudget,   actual:t.varActual,  income:false},
+    {label:'Income',   budget:incBudget,    actual:incActual,      income:true},
+    {label:'Fixed',    budget:fixedBudget,  actual:t.fixedActual,  income:false},
+    {label:'Variable', budget:varBudget,    actual:t.varActual,    income:false},
+    {label:'Saved',    budget:0,            actual:savedThisPeriod,income:false, isSaved:true},
   ];
+
   let html='';
+  // Column header
   rows.forEach(r=>{
+    if(r.isSaved){
+      // Saved row — no budget col, just actual
+      html+=`<div class="bva-ov-row" style="background:rgba(122,184,232,0.06);">
+        <span style="color:var(--sky2);">🎯 Saved (this period)</span>
+        <span class="bva-ov-val">—</span>
+        <span class="bva-ov-val" style="color:var(--sky2);">${fmtN(r.actual)}</span>
+        <span class="bva-ov-val"><span class="diff-badge diff-under">−${fmtN(r.actual)}</span></span>
+      </div>`;
+      return;
+    }
     const diff=r.income?r.actual-r.budget:r.budget-r.actual;
     const dc=diff>0?'diff-under':diff<0?'diff-over':'diff-zero';
     const dl=diff===0?'—':(diff>0?'+':'')+fmtN(Math.abs(diff));
     html+=`<div class="bva-ov-row"><span>${r.label}</span><span class="bva-ov-val">${fmtN(r.budget)}</span><span class="bva-ov-val">${fmtN(r.actual)}</span><span class="bva-ov-val"><span class="diff-badge ${dc}">${dl}</span></span></div>`;
   });
+
   if(t.carryover>0){
     html+=`<div class="bva-ov-row rollover-row"><span style="color:var(--green);font-size:10px;">↩ Carryover</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val"><span class="diff-badge diff-under">+</span></span></div>`;
   }
-  const nd=netActual-netBudget;
-  html+=`<div class="bva-ov-row total-row"><span>Net Remaining</span><span class="bva-ov-val">${fmtN(netBudget)}</span><span class="bva-ov-val">${fmtN(netActual)}</span><span class="bva-ov-val"><span class="diff-badge ${nd>=0?'diff-under':'diff-over'}">${nd>=0?'✓':fmtN(Math.abs(nd))+' over'}</span></span></div>`;
+
+  if(t.debtPaid>0){
+    html+=`<div class="bva-ov-row" style="background:rgba(212,96,122,0.04);">
+      <span style="color:var(--red);font-size:10px;">💳 Debt payments</span>
+      <span class="bva-ov-val">—</span>
+      <span class="bva-ov-val" style="color:var(--red);">${fmtN(t.debtPaid)}</span>
+      <span class="bva-ov-val"><span class="diff-badge diff-over">−${fmtN(t.debtPaid)}</span></span>
+    </div>`;
+  }
+
+  // Net remaining row — actual income minus all actual spend and saved
+  const trueNet=incActual+t.carryover-t.fixedActual-t.varActual-savedThisPeriod-t.debtPaid;
+  html+=`<div class="bva-ov-row total-row">
+    <span>Net Remaining</span>
+    <span class="bva-ov-val">${fmtN(netBudget)}</span>
+    <span class="bva-ov-val" style="color:${trueNet>=0?'var(--green)':'var(--red)'};">${(trueNet<0?'-':'')+fmtN(trueNet)}</span>
+    <span class="bva-ov-val"><span class="diff-badge ${trueNet>=0?'diff-under':'diff-over'}">${trueNet>=0?'✓':fmtN(Math.abs(trueNet))+' over'}</span></span>
+  </div>`;
+
   document.getElementById('bvaTable').innerHTML=html;
 }
 
