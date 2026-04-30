@@ -776,15 +776,13 @@ function updatePeriodDisplay(){
 
 // ── BVA ROWS (income & variable) — with thousands-formatted display ───────────
 // We store raw numbers but show formatted display text, switching to plain number on focus
-function addBvaRow(cid, type, name='', budgeted='', actual='', bankId=''){
+function addBvaRow(cid, type, name='', budgeted='', actual='', bankId='', skipSync=false){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='bva-row';
-  if(bankId) row.dataset.bankid=bankId;
   const bFmt = budgeted ? formatNum(budgeted) : '';
   const aFmt = actual   ? formatNum(actual)   : '';
   const left=budgeted&&actual?parseFloat(budgeted)-parseFloat(actual):budgeted?parseFloat(budgeted):0;
   const leftBadge=_leftBadge(left);
-  const bankOpts=bankSelectHtml(bankId);
   row.innerHTML=`
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncBva('${cid}','${type}')"/>
     <input class="bva-input" placeholder="0" value="${bFmt}"
@@ -792,9 +790,11 @@ function addBvaRow(cid, type, name='', budgeted='', actual='', bankId=''){
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
     <div class="row-left-badge">${leftBadge}</div>
-    <button class="del-btn" style="font-size:15px;color:${bankId?'var(--sky2)':'var(--text3)'};" onclick="openAssignBankFromRow(this,'${cid}','${type}')" title="${bankId?(S.banks||[]).find(b=>b.id===bankId)?.name||'Bank assigned':'Assign bank'}">🏦</button>
     <button class="del-btn" onclick="this.parentElement.remove();syncBva('${cid}','${type}')">✕</button>`;
-  c.appendChild(row); syncBva(cid,type);
+  // Set dataset AFTER innerHTML so it isn't wiped
+  if(bankId) row.dataset.bankid=bankId;
+  c.appendChild(row);
+  if(!skipSync) syncBva(cid,type);
 }
 
 
@@ -881,6 +881,8 @@ function addFixedRow(cid,name='',budgeted='',actual='',paid=false,bankId=''){
     <div class="row-left-badge">${fLeftBadge}</div>
     <button class="del-btn" style="font-size:15px;color:${bankId?'var(--sky2)':'var(--text3)'};" onclick="openAssignBankFromRow(this,'fixed-rows','fixed')" title="${bankId?(S.banks||[]).find(b=>b.id===bankId)?.name||'Bank assigned':'Assign bank'}">🏦</button>
     <button class="del-btn" onclick="this.parentElement.remove();syncFixed()">✕</button>`;
+  // Set dataset AFTER innerHTML so it isn't wiped
+  if(bankId) row.dataset.bankid=bankId;
   c.appendChild(row); syncFixed();
 }
 function togglePaid(btn){
@@ -953,15 +955,36 @@ function renderFixedSummary(){
 function renderAllRows(){
   const m=getM();
   document.getElementById('income-rows').innerHTML='';
-  (m.income||[]).forEach(r=>addBvaRow('income-rows','income',r.name,r.budgeted,r.actual,r.bankId||''));
-  if(!(m.income||[]).length) addBvaRow('income-rows','income');
+  (m.income||[]).forEach(r=>addBvaRow('income-rows','income',r.name,r.budgeted,r.actual,r.bankId||'',true));
+  if(!(m.income||[]).length) addBvaRow('income-rows','income','','','','',true);
+  // sync once after all income rows are added
+  syncBvaQuiet('income-rows','income');
+
   document.getElementById('fixed-rows').innerHTML='';
   (m.fixed||[]).forEach(r=>addFixedRow('fixed-rows',r.name,r.budgeted,r.actual,r.paid,r.bankId||''));
   if(!(m.fixed||[]).length) addFixedRow('fixed-rows');
+
   document.getElementById('variable-rows').innerHTML='';
-  (m.variable||[]).forEach(r=>addBvaRow('variable-rows','variable',r.name,r.budgeted,r.actual,r.bankId||''));
-  if(!(m.variable||[]).length) addBvaRow('variable-rows','variable');
+  (m.variable||[]).forEach(r=>addBvaRow('variable-rows','variable',r.name,r.budgeted,r.actual,r.bankId||'',true));
+  if(!(m.variable||[]).length) addBvaRow('variable-rows','variable','','','','',true);
+  // sync once after all variable rows are added
+  syncBvaQuiet('variable-rows','variable');
+
   renderFixedSummary(); updateBvaSummary('variable'); renderDailyExpenses();
+}
+
+// syncBvaQuiet: syncs data without triggering full UI cascade (used during bulk render)
+function syncBvaQuiet(cid, type){
+  const m=getM(), rows=document.querySelectorAll('#'+cid+' .bva-row');
+  m[type]=Array.from(rows).map(r=>{
+    const inp=r.querySelectorAll('.bva-input');
+    const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
+    const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
+    const obj={name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
+    if(r.dataset.bankid) obj.bankId=r.dataset.bankid;
+    return obj;
+  }).filter(r=>r.name||r.budgeted||r.actual);
+  // no save/render cascade — just update the data model
 }
 
 function updateBvaSummary(type){
