@@ -62,7 +62,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .add-btn:hover{transform:scale(1.1);}
 
 /* BVA rows — income & variable use formatted display inputs */
-.bva-row{display:grid;grid-template-columns:1fr 80px 80px 68px 90px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
+.bva-row{display:grid;grid-template-columns:1fr 80px 80px 68px 28px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
 .bva-row:last-child{border-bottom:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .bva-name{font-size:12px;color:var(--text);background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;width:100%;min-width:0;}
@@ -72,7 +72,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bva-input.actual:focus{border-color:var(--mint2);}
 .del-btn{background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;transition:color 0.2s;}
 .del-btn:hover{color:var(--rose2);}
-.bva-col-headers{display:grid;grid-template-columns:1fr 80px 80px 68px 90px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.bva-col-headers{display:grid;grid-template-columns:1fr 80px 80px 68px 28px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .bva-col-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);text-align:right;}
 .bva-col-label:first-child{text-align:left;}
 
@@ -85,12 +85,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .diff-over{background:rgba(212,96,122,0.12);color:var(--red);}
 .diff-under{background:rgba(74,158,122,0.12);color:var(--green);}
 .diff-zero{background:rgba(200,170,155,0.12);color:var(--text3);}
-.fixed-row{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 90px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;transition:background 0.3s;}
+.fixed-row{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 28px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;transition:background 0.3s;}
 .fixed-row:last-child{border-bottom:none;}
 .fixed-row.paid-row{background:rgba(168,223,200,0.08);}
 .paid-toggle{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.25s;flex-shrink:0;}
 .paid-toggle.paid{background:linear-gradient(135deg,var(--mint),var(--mint2));border-color:var(--mint2);color:#fff;}
-.fixed-col-headers{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 90px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.fixed-col-headers{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 28px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .progress-wrap{margin:10px 0 3px;}
 .progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:5px;}
 .progress-bar{height:7px;background:rgba(200,170,155,0.15);border-radius:4px;overflow:hidden;}
@@ -281,7 +281,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="section-sub">Add your income sources for this period</div>
     <div class="card">
       <div class="card-header"><span class="card-title">Income Sources</span><button class="add-btn" onclick="addBvaRow('income-rows','income')">+</button></div>
-      <div class="bva-col-headers"><span class="bva-col-label">Source</span><span class="bva-col-label">Expected</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span class="bva-col-label">Bank</span><span></span></div>
+      <div class="bva-col-headers"><span class="bva-col-label">Source</span><span class="bva-col-label">Expected</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span></span><span></span></div>
       <div id="income-rows"></div>
     </div>
   </div>
@@ -294,7 +294,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="section-sub">Tap ✓ when paid — it counts toward actual spend</div>
     <div class="card">
       <div class="card-header"><span class="card-title">Monthly Fixed Costs</span><button class="add-btn" onclick="addFixedRow('fixed-rows')">+</button></div>
-      <div class="fixed-col-headers"><span class="bva-col-label"></span><span class="bva-col-label">Description</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span class="bva-col-label">Bank</span><span></span></div>
+      <div class="fixed-col-headers"><span class="bva-col-label"></span><span class="bva-col-label">Description</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span></span><span></span></div>
       <div id="fixed-rows"></div>
     </div>
     <div id="fixed-summary" style="margin-top:8px;"></div>
@@ -316,7 +316,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="bva-col-label">Budgeted</span>
         <span class="bva-col-label">Actual</span>
         <span class="bva-col-label">Left</span>
-        <span class="bva-col-label">Bank</span>
+        <span></span>
         <span></span>
       </div>
       <div id="variable-rows"></div>
@@ -759,7 +759,7 @@ function addBvaRow(cid, type, name='', budgeted='', actual='', bankId=''){
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
     <div class="row-left-badge">${leftBadge}</div>
-    ${bankOpts?`<select class="bank-select bank-row-select" onchange="syncBva('${cid}','${type}')">${bankOpts}</select>`:'<div></div>'}
+    <button class="del-btn" style="font-size:15px;color:${bankId?'var(--sky2)':'var(--text3)'};" onclick="openAssignBankFromRow(this,'${cid}','${type}')" title="${bankId?(S.banks||[]).find(b=>b.id===bankId)?.name||'Bank assigned':'Assign bank'}">🏦</button>
     <button class="del-btn" onclick="this.parentElement.remove();syncBva('${cid}','${type}')">✕</button>`;
   c.appendChild(row); syncBva(cid,type);
 }
@@ -820,10 +820,10 @@ function syncBva(cid,type){
     const inp=r.querySelectorAll('.bva-input');
     const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
     const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
-    const bankSel=r.querySelector('.bank-row-select');
-    const bankId=bankSel?bankSel.value:'';
     const obj={name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
-    if(bankId) obj.bankId=bankId;
+    // preserve bankId stored on the data — don't overwrite from a select that no longer exists
+    const m2=getM(); const existing=(m2[type]||[])[Array.from(r.parentElement.children).indexOf(r)];
+    if(existing&&existing.bankId) obj.bankId=existing.bankId;
     return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); updateBvaSummary(type); updateOverview(); updateRowLeftBadges(cid,type);
@@ -846,7 +846,7 @@ function addFixedRow(cid,name='',budgeted='',actual='',paid=false,bankId=''){
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInputFixed(this)" onblur="fmtInputFixed(this)" oninput="syncFixed()"/>
     <div class="row-left-badge">${fLeftBadge}</div>
-    ${bankOpts?`<select class="bank-select bank-row-select" onchange="syncFixed()">${bankOpts}</select>`:'<div></div>'}
+    <button class="del-btn" style="font-size:15px;color:${bankId?'var(--sky2)':'var(--text3)'};" onclick="openAssignBankFromRow(this,'fixed-rows','fixed')" title="${bankId?(S.banks||[]).find(b=>b.id===bankId)?.name||'Bank assigned':'Assign bank'}">🏦</button>
     <button class="del-btn" onclick="this.parentElement.remove();syncFixed()">✕</button>`;
   c.appendChild(row); syncFixed();
 }
@@ -870,12 +870,11 @@ function syncFixed(){
   m.fixed=Array.from(rows).map(r=>{
     const inp=r.querySelectorAll('.bva-input');
     const paid=r.querySelector('.paid-toggle').classList.contains('paid');
-    const bankSel=r.querySelector('.bank-row-select');
-    const bankId=bankSel?bankSel.value:'';
     const obj={name:r.querySelector('.bva-name').value,
       budgeted:parseFloat(String(inp[0].value).replace(/,/g,''))||0,
       actual:parseFloat(String(inp[1].value).replace(/,/g,''))||0, paid};
-    if(bankId) obj.bankId=bankId;
+    const mf=getM(); const existingF=(mf.fixed||[])[Array.from(r.parentElement.children).indexOf(r)];
+    if(existingF&&existingF.bankId) obj.bankId=existingF.bankId;
     return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); renderFixedSummary(); updateOverview(); updateFixedLeftBadges();
@@ -1872,6 +1871,39 @@ function removeTransfer(i){
 }
 
 // ── Assign bank to existing transactions ──────────────────────────────────────
+
+function openAssignBankFromRow(btn, cid, type){
+  const row = btn.closest('.bva-row,.fixed-row');
+  const container = document.getElementById(cid);
+  const rows = Array.from(container.querySelectorAll(type==='fixed'?'.fixed-row':'.bva-row'));
+  const idx = rows.indexOf(row);
+  if(idx<0) return;
+  // Get existing bankId for this row
+  const m=getM();
+  const data=m[type]||[];
+  const existing=data[idx];
+  const currentBankId=existing?existing.bankId:'';
+  openAssignBankModal(type, idx, currentBankId, btn);
+}
+
+function openAssignBankModal(type, idx, currentBankId, triggerBtn){
+  if(!S.banks||!S.banks.length){ alert('Add a bank account first on the Banks tab.'); return; }
+  const m=getM();
+  const data=m[type]||[];
+  const row=data[idx];
+  const label=row?(row.name||'this entry'):'this entry';
+  document.getElementById('assignBankTitle').textContent='Assign Bank 🏦';
+  document.getElementById('assignBankSub').textContent=`"${label}" — choose which account`;
+  document.getElementById('assignBankType').value=type;
+  document.getElementById('assignBankIdx').value=idx;
+  const sel=document.getElementById('assignBankSelect');
+  sel.innerHTML='<option value="">— none (unassign) —</option>';
+  (S.banks||[]).forEach(b=>{
+    sel.innerHTML+=`<option value="${b.id}"${currentBankId===b.id?' selected':''}>${b.name}</option>`;
+  });
+  openModal('assignBankModal');
+}
+
 function openAssignBank(type, idx){
   if(!S.banks||!S.banks.length){ alert('Add a bank account first on the Banks tab.'); return; }
   const m=getM();
@@ -1903,11 +1935,23 @@ function confirmAssignBank(){
   if(type==='variable') row=(m.variable||[])[idx];
   if(!row) return;
   if(bankId) row.bankId=bankId; else delete row.bankId;
-  save(); renderBanks(); closeModal('assignBankModal');
-  // re-render the relevant tab rows to show updated badge
-  if(type==='income')   renderAllRows();
-  if(type==='fixed')    renderAllRows();
-  if(type==='variable') renderAllRows();
+  save();
+  // Update the 🏦 button color to indicate assignment
+  const cid=type==='fixed'?'fixed-rows':type+'-rows';
+  const container=document.getElementById(cid);
+  if(container){
+    const rowEls=Array.from(container.querySelectorAll(type==='fixed'?'.fixed-row':'.bva-row'));
+    const rowEl=rowEls[idx];
+    if(rowEl){
+      const btns=rowEl.querySelectorAll('.del-btn');
+      const bankBtn=Array.from(btns).find(b=>b.textContent==='🏦');
+      if(bankBtn){
+        bankBtn.style.color=bankId?'var(--sky2)':'var(--text3)';
+        bankBtn.title=bankId?(getBankById(bankId)||{}).name||'Bank assigned':'Assign bank account';
+      }
+    }
+  }
+  renderBanks(); closeModal('assignBankModal');
 }
 
 // ── Populate bank dropdown selects on income/fixed/variable rows ──────────────
