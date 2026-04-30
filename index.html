@@ -556,6 +556,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field-row"><div class="field-label">Current Balance (XCG)</div><input class="modal-input" id="debtBalance" type="number" placeholder="3000"/></div>
     <div class="field-row"><div class="field-label">Minimum Monthly Payment (XCG)</div><input class="modal-input" id="debtPayment" type="number" placeholder="200"/></div>
     <div class="field-row"><div class="field-label">Interest Rate (% APR)</div><input class="modal-input" id="debtRate" type="number" placeholder="18.99"/></div>
+    <div class="field-row"><div class="field-label">Linked Bank Account (optional)</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Debt payments will add to this account's balance</div>
+      <select class="modal-input" id="debtBankId" style="cursor:pointer;"><option value="">— none —</option></select>
+    </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('debtModal')">Cancel</button>
       <button class="modal-btn primary" onclick="confirmDebt()">Add Debt</button>
@@ -1192,9 +1196,13 @@ function renderDebts(){
       <div class="payoff-date">🌷 Est. payoff: ${pd}</div>
       <div class="debt-this-month">
         <div class="debt-month-label">This period — amount paid</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="number" value="${thisPaid||''}" placeholder="${fmtN(pay)}" class="small-input" onchange="updateDebtPayment('${d.id}',this.value)"/>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="number" value="${thisPaid||''}" placeholder="${fmtN(pay)}" class="small-input" style="flex:1;min-width:100px;" onchange="updateDebtPayment('${d.id}',this.value)"/>
+          <button class="action-btn edit" style="flex:0 0 auto;padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;" onclick="openAssignDebtBank('${d.id}')" title="${d.bankId?(S.banks||[]).find(b=>b.id===d.bankId)?.name||'Bank assigned':'Assign bank account'}">
+            🏦 ${d.bankId?((S.banks||[]).find(b=>b.id===d.bankId)?.name||'Bank'):'Assign Bank'}
+          </button>
         </div>
+        ${d.bankId?`<div style="font-size:10px;color:var(--sky2);margin-top:5px;">💳 Payments go to: ${(S.banks||[]).find(b=>b.id===d.bankId)?.name||'—'}</div>`:''}
       </div>
       <div class="debt-actions">
         <button class="action-btn edit" onclick="openDebtEdit('${d.id}')">✏️ Edit Debt</button>
@@ -1219,6 +1227,7 @@ function updateDebtPayment(id,val){
   const d=S.globalDebts.find(x=>x.id===id);
   if(d){ d.balance=Math.max(0,(parseFloat(d.balance)||0)-nv+prev); d.totalPaid=(d.totalPaid||0)+nv-prev; }
   save(); updateSummary(); renderDebts(); updateOverview();
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 
 function openDebtEdit(id){
@@ -1228,6 +1237,8 @@ function openDebtEdit(id){
   document.getElementById('editDebtBalance').value=d.balance;
   document.getElementById('editDebtPayment').value=d.minPayment;
   document.getElementById('editDebtRate').value=d.rate;
+  const bSel=document.getElementById('editDebtBankId');
+  if(bSel){ bSel.innerHTML='<option value="">— none —</option>'; (S.banks||[]).forEach(b=>{ bSel.innerHTML+=`<option value="${b.id}"${d.bankId===b.id?' selected':''}}>${b.name}</option>`; }); }
   openModal('debtEditModal');
 }
 
@@ -1245,7 +1256,9 @@ function confirmDebtEdit(){
   }
   d.minPayment=parseFloat(document.getElementById('editDebtPayment').value)||d.minPayment;
   d.rate=parseFloat(document.getElementById('editDebtRate').value)||0;
-  save(); renderDebts(); updateSummary(); closeModal('debtEditModal');
+  const eBankId=document.getElementById('editDebtBankId')?document.getElementById('editDebtBankId').value:'';
+  if(eBankId) d.bankId=eBankId; else delete d.bankId;
+  save(); renderDebts(); updateSummary(); renderBanks(); closeModal('debtEditModal');
 }
 
 function removeDebt(id){
@@ -1535,11 +1548,18 @@ function confirmGoal(){
   save(); renderGoals(); updateSummary(); closeModal('goalModal');
 }
 
-function openDebtModal(){ openModal('debtModal'); }
+function openDebtModal(){
+  const sel=document.getElementById('debtBankId');
+  if(sel){ sel.innerHTML='<option value="">— none —</option>'; (S.banks||[]).forEach(b=>{ sel.innerHTML+=`<option value="${b.id}">${b.name}</option>`; }); }
+  openModal('debtModal');
+}
 function confirmDebt(){
   const name=document.getElementById('debtName').value.trim(), balance=parseFloat(document.getElementById('debtBalance').value)||0;
   if(!name||!balance) return;
-  S.globalDebts.push({id:'d'+Date.now(),name,balance,originalBalance:balance,minPayment:parseFloat(document.getElementById('debtPayment').value)||0,rate:parseFloat(document.getElementById('debtRate').value)||0,totalPaid:0});
+  const dBankId=document.getElementById('debtBankId')?document.getElementById('debtBankId').value:'';
+  const newDebt={id:'d'+Date.now(),name,balance,originalBalance:balance,minPayment:parseFloat(document.getElementById('debtPayment').value)||0,rate:parseFloat(document.getElementById('debtRate').value)||0,totalPaid:0};
+  if(dBankId) newDebt.bankId=dBankId;
+  S.globalDebts.push(newDebt);
   save(); renderDebts(); updateSummary(); closeModal('debtModal');
   ['debtName','debtBalance','debtPayment','debtRate'].forEach(id=>document.getElementById(id).value='');
 }
@@ -1698,6 +1718,16 @@ function bankBalance(b){
   (m.variable||[]).forEach(r=>{ if(r.bankId===b.id) bal-=r.actual||0; });
   // Daily expenses
   (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
+  // Debt payments — paying a debt adds to the bank's balance (restores available credit)
+  S.globalDebts.forEach(d=>{
+    if(d.bankId===b.id){
+      // sum payments across all months for this debt
+      S.months.forEach(mo=>{
+        const paid=parseFloat((mo.debtPayments||{})[d.id])||0;
+        bal+=paid;
+      });
+    }
+  });
   // Transfers (global)
   (S.transfers||[]).forEach(t=>{
     if(t.fromId===b.id) bal-=t.amount||0;
@@ -1713,6 +1743,15 @@ function bankInOut(b){
   (m.fixed||[]).forEach(r=>{ if(r.paid&&r.bankId===b.id) totalOut+=(r.actual||r.budgeted||0); });
   (m.variable||[]).forEach(r=>{ if(r.bankId===b.id) totalOut+=r.actual||0; });
   (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) totalOut+=e.amount||0; });
+  // Debt payments add to "in" for the linked bank
+  S.globalDebts.forEach(d=>{
+    if(d.bankId===b.id){
+      S.months.forEach(mo=>{
+        const paid=parseFloat((mo.debtPayments||{})[d.id])||0;
+        totalIn+=paid;
+      });
+    }
+  });
   (S.transfers||[]).forEach(t=>{
     if(t.fromId===b.id) totalOut+=t.amount||0;
     if(t.toId===b.id)   totalIn+=t.amount||0;
@@ -1872,6 +1911,22 @@ function removeTransfer(i){
 
 // ── Assign bank to existing transactions ──────────────────────────────────────
 
+
+function openAssignDebtBank(debtId){
+  if(!S.banks||!S.banks.length){ alert('Add a bank account first on the Banks tab.'); return; }
+  const d=S.globalDebts.find(x=>x.id===debtId); if(!d) return;
+  document.getElementById('assignBankTitle').textContent='Assign Bank to Debt 🏦';
+  document.getElementById('assignBankSub').textContent=`"${d.name}" — payments will add to the chosen account's balance`;
+  document.getElementById('assignBankType').value='debt';
+  document.getElementById('assignBankIdx').value=debtId;
+  const sel=document.getElementById('assignBankSelect');
+  sel.innerHTML='<option value="">— none (unassign) —</option>';
+  (S.banks||[]).forEach(b=>{
+    sel.innerHTML+=`<option value="${b.id}"${d.bankId===b.id?' selected':''}>${b.name}</option>`;
+  });
+  openModal('assignBankModal');
+}
+
 function openAssignBankFromRow(btn, cid, type){
   const row = btn.closest('.bva-row,.fixed-row');
   const container = document.getElementById(cid);
@@ -1926,9 +1981,19 @@ function openAssignBank(type, idx){
 
 function confirmAssignBank(){
   const type=document.getElementById('assignBankType').value;
-  const idx=parseInt(document.getElementById('assignBankIdx').value);
+  const rawIdx=document.getElementById('assignBankIdx').value;
   const bankId=document.getElementById('assignBankSelect').value;
   const m=getM();
+
+  // Handle debt bank assignment separately
+  if(type==='debt'){
+    const d=S.globalDebts.find(x=>x.id===rawIdx);
+    if(!d) return;
+    if(bankId) d.bankId=bankId; else delete d.bankId;
+    save(); renderDebts(); renderBanks(); closeModal('assignBankModal'); return;
+  }
+
+  const idx=parseInt(rawIdx);
   let row;
   if(type==='income')   row=(m.income||[])[idx];
   if(type==='fixed')    row=(m.fixed||[])[idx];
