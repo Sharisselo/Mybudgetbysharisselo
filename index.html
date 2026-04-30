@@ -783,6 +783,9 @@ function addBvaRow(cid, type, name='', budgeted='', actual='', bankId='', skipSy
   const aFmt = actual   ? formatNum(actual)   : '';
   const left=budgeted&&actual?parseFloat(budgeted)-parseFloat(actual):budgeted?parseFloat(budgeted):0;
   const leftBadge=_leftBadge(left);
+  const bankBtn = type==='income'
+    ? `<button class="del-btn" style="font-size:15px;color:${bankId?'var(--sky2)':'var(--text3)'};" onclick="openAssignBankFromRow(this,'${cid}','${type}')" title="${bankId?(S.banks||[]).find(b=>b.id===bankId)?.name||'Bank assigned':'Assign bank'}">🏦</button>`
+    : '';
   row.innerHTML=`
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncBva('${cid}','${type}')"/>
     <input class="bva-input" placeholder="0" value="${bFmt}"
@@ -790,6 +793,7 @@ function addBvaRow(cid, type, name='', budgeted='', actual='', bankId='', skipSy
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
     <div class="row-left-badge">${leftBadge}</div>
+    ${bankBtn}
     <button class="del-btn" onclick="this.parentElement.remove();syncBva('${cid}','${type}')">✕</button>`;
   // Set dataset AFTER innerHTML so it isn't wiped
   if(bankId) row.dataset.bankid=bankId;
@@ -1785,7 +1789,7 @@ function confirmEditDailyExpense(){
   if(newBankId) entries[idx].bankId=newBankId;
   else delete entries[idx].bankId;
 
-  save(); renderAllRows(); renderDailyExpenses(); updateSummary(); updateOverview();
+  save(); renderDailyExpenses(); updateBvaSummary('variable'); updateSummary(); updateOverview();
   if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
   closeModal('editDailyExpenseModal');
 }
@@ -1798,7 +1802,7 @@ function removeDailyExpense(idx){
   const varRow=m.variable.find(r=>r.name===e.cat);
   if(varRow){ varRow.actual=Math.max(0,(varRow.actual||0)-e.amount); }
   m.dailyExpenses.splice(idx,1);
-  save(); renderAllRows(); renderDailyExpenses(); updateSummary(); updateOverview();
+  save(); renderDailyExpenses(); updateBvaSummary('variable'); updateSummary(); updateOverview();
   if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 
