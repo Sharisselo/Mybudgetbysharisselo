@@ -598,6 +598,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field-row"><div class="field-label">Amount (XCG)</div><input class="modal-input" id="depositAmount" type="number" placeholder="100"/></div>
     <div class="field-row"><div class="field-label">Note (optional)</div><input class="modal-input" id="depositNote" placeholder="e.g. Salary leftover, Birthday money"/></div>
     <div class="field-row"><div class="field-label">Date</div><input class="modal-input" id="depositDate" type="date"/></div>
+    <div class="field-row"><div class="field-label">Source / Bank (optional)</div>
+      <select class="modal-input" id="depositBankId" style="cursor:pointer;"><option value="">— cash / unspecified —</option></select>
+    </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('depositModal')">Cancel</button>
       <button class="modal-btn green" onclick="confirmDeposit()">Save Entry</button>
@@ -647,7 +650,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field-row"><div class="field-label">Account Name</div><input class="modal-input" id="bankName" placeholder="e.g. MCB Chequing, Maduro Savings"/></div>
     <div class="field-row"><div class="field-label">Account Type</div>
       <select class="modal-input" id="bankType" style="cursor:pointer;">
-        <option value="chequing">Chequing</option>
+        <option value="current">Current</option>
         <option value="savings">Savings</option>
         <option value="credit">Credit Card</option>
         <option value="cash">Cash</option>
@@ -724,6 +727,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('editDailyExpenseModal')">Cancel</button>
       <button class="modal-btn primary" onclick="confirmEditDailyExpense()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Deposit Modal -->
+<div class="modal-overlay" id="editDepositModal">
+  <div class="modal">
+    <div class="modal-title">Edit Entry 📖</div>
+    <div class="modal-sub">Update details or change the source</div>
+    <input type="hidden" id="editDepositIdx"/>
+    <div class="field-row"><div class="field-label">Type</div>
+      <select class="modal-input" id="editDepositType" style="cursor:pointer;">
+        <option value="deposit">Deposit (+)</option>
+        <option value="withdrawal">Withdrawal (−)</option>
+      </select>
+    </div>
+    <div class="field-row"><div class="field-label">Amount (XCG)</div><input class="modal-input" id="editDepositAmount" type="number" placeholder="0"/></div>
+    <div class="field-row"><div class="field-label">Note (optional)</div><input class="modal-input" id="editDepositNote" placeholder="e.g. Salary leftover"/></div>
+    <div class="field-row"><div class="field-label">Date</div><input class="modal-input" id="editDepositDate" type="date"/></div>
+    <div class="field-row"><div class="field-label">Source / Bank (optional)</div>
+      <select class="modal-input" id="editDepositBankId" style="cursor:pointer;"><option value="">— cash / unspecified —</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('editDepositModal')">Cancel</button>
+      <button class="modal-btn green" onclick="confirmEditDeposit()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1442,18 +1470,52 @@ function renderSavingsBook(){
   }
   [...entries].reverse().forEach((e,ri)=>{
     const i=entries.length-1-ri, isW=e.type==='withdrawal';
+    const bankName=e.bankId?(S.banks||[]).find(b=>b.id===e.bankId)?.name:'';
     list.innerHTML+=`<div class="deposit-row">
       <div class="deposit-dot" style="background:${e.isBeginning?'var(--lavender2)':isW?'var(--rose2)':'var(--mint2)'}"></div>
       <div class="deposit-info">
         <div class="deposit-note">${e.isBeginning?'📌 ':isW?'':''}${e.note||'Cash deposit'}</div>
-        <div class="deposit-date">${e.date||'—'}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">
+          <span class="deposit-date">${e.date||'—'}</span>
+          ${bankName?`<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:6px;background:rgba(122,184,232,0.15);color:var(--sky2);">🏦 ${bankName}</span>`:'<span style="font-size:9px;color:var(--text3);">💵 Cash</span>'}
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
         <div class="deposit-amount ${isW?'negative':'positive'}">${isW?'−':'+'}${fmtN(e.amount)}</div>
+        <button class="del-btn" style="font-size:13px;" onclick="openEditDeposit(${i})" title="Edit entry">✏️</button>
         <button class="del-btn" onclick="removeDeposit(${i})">✕</button>
       </div>
     </div>`;
   });
+}
+
+
+function openEditDeposit(i){
+  const e=(S.savingsBook||[])[i]; if(!e) return;
+  document.getElementById('editDepositIdx').value=i;
+  document.getElementById('editDepositType').value=e.type||'deposit';
+  document.getElementById('editDepositAmount').value=e.amount||'';
+  document.getElementById('editDepositNote').value=e.note||'';
+  document.getElementById('editDepositDate').value=e.date||'';
+  const sel=document.getElementById('editDepositBankId');
+  if(sel){ sel.innerHTML='<option value="">— cash / unspecified —</option>'; (S.banks||[]).forEach(b=>{ sel.innerHTML+=`<option value="${b.id}"${e.bankId===b.id?' selected':''}>${b.name}</option>`; }); }
+  openModal('editDepositModal');
+}
+
+function confirmEditDeposit(){
+  const i=parseInt(document.getElementById('editDepositIdx').value);
+  const entries=S.savingsBook||[];
+  if(!entries[i]) return;
+  const newBankId=document.getElementById('editDepositBankId').value;
+  entries[i]={
+    ...entries[i],
+    type:document.getElementById('editDepositType').value,
+    amount:parseFloat(document.getElementById('editDepositAmount').value)||entries[i].amount,
+    note:document.getElementById('editDepositNote').value.trim(),
+    date:document.getElementById('editDepositDate').value||entries[i].date,
+  };
+  if(newBankId) entries[i].bankId=newBankId; else delete entries[i].bankId;
+  save(); renderSavingsBook(); closeModal('editDepositModal');
 }
 
 function openBookBalanceModal(){ openModal('bookBalanceModal'); }
@@ -1470,10 +1532,18 @@ function confirmBookBalance(){
 }
 
 function removeDeposit(i){ S.savingsBook.splice(i,1); save(); renderSavingsBook(); }
-function openDepositModal(){ document.getElementById('depositDate').value=new Date().toISOString().split('T')[0]; openModal('depositModal'); }
+function openDepositModal(){
+  document.getElementById('depositDate').value=new Date().toISOString().split('T')[0];
+  const sel=document.getElementById('depositBankId');
+  if(sel){ sel.innerHTML='<option value="">— cash / unspecified —</option>'; (S.banks||[]).forEach(b=>{ sel.innerHTML+=`<option value="${b.id}">${b.name}</option>`; }); }
+  openModal('depositModal');
+}
 function confirmDeposit(){
   const amount=parseFloat(document.getElementById('depositAmount').value)||0; if(!amount) return;
-  S.savingsBook.push({amount,note:document.getElementById('depositNote').value.trim(),date:document.getElementById('depositDate').value,type:document.getElementById('depositType').value});
+  const depBankId=document.getElementById('depositBankId')?document.getElementById('depositBankId').value:'';
+  const entry={amount,note:document.getElementById('depositNote').value.trim(),date:document.getElementById('depositDate').value,type:document.getElementById('depositType').value};
+  if(depBankId) entry.bankId=depBankId;
+  S.savingsBook.push(entry);
   save(); renderSavingsBook(); closeModal('depositModal');
   ['depositAmount','depositNote'].forEach(id=>document.getElementById(id).value='');
 }
@@ -1891,7 +1961,7 @@ function renderBanks(){
     renderTransfers(); return;
   }
 
-  const typeIcon={chequing:'🏦',savings:'💰',credit:'💳',cash:'💵',other:'🏧'};
+  const typeIcon={current:'🏦',savings:'💰',credit:'💳',cash:'💵',other:'🏧'};
   S.banks.forEach(b=>{
     const bal=bankBalance(b);
     const{totalIn,totalOut}=bankInOut(b);
@@ -1944,7 +2014,7 @@ function openBankModal(){
   document.getElementById('bankSaveBtn').textContent='Add Account';
   document.getElementById('editBankId').value='';
   ['bankName','bankBeginBalance'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('bankType').value='chequing';
+  document.getElementById('bankType').value='current';
   openModal('bankModal');
 }
 
