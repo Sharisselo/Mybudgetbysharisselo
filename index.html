@@ -62,7 +62,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .add-btn:hover{transform:scale(1.1);}
 
 /* BVA rows — income & variable use formatted display inputs */
-.bva-row{display:grid;grid-template-columns:1fr 80px 80px 68px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
+.bva-row{display:grid;grid-template-columns:1fr 80px 80px 68px 90px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;}
 .bva-row:last-child{border-bottom:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .bva-name{font-size:12px;color:var(--text);background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;width:100%;min-width:0;}
@@ -72,7 +72,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bva-input.actual:focus{border-color:var(--mint2);}
 .del-btn{background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;transition:color 0.2s;}
 .del-btn:hover{color:var(--rose2);}
-.bva-col-headers{display:grid;grid-template-columns:1fr 80px 80px 68px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.bva-col-headers{display:grid;grid-template-columns:1fr 80px 80px 68px 90px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .bva-col-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);text-align:right;}
 .bva-col-label:first-child{text-align:left;}
 
@@ -85,12 +85,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .diff-over{background:rgba(212,96,122,0.12);color:var(--red);}
 .diff-under{background:rgba(74,158,122,0.12);color:var(--green);}
 .diff-zero{background:rgba(200,170,155,0.12);color:var(--text3);}
-.fixed-row{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;transition:background 0.3s;}
+.fixed-row{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 90px 28px;gap:6px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);background:#fff;animation:fadeIn 0.3s ease;transition:background 0.3s;}
 .fixed-row:last-child{border-bottom:none;}
 .fixed-row.paid-row{background:rgba(168,223,200,0.08);}
 .paid-toggle{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.25s;flex-shrink:0;}
 .paid-toggle.paid{background:linear-gradient(135deg,var(--mint),var(--mint2));border-color:var(--mint2);color:#fff;}
-.fixed-col-headers{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
+.fixed-col-headers{display:grid;grid-template-columns:28px 1fr 72px 72px 68px 90px 28px;gap:6px;padding:5px 14px;background:rgba(200,170,155,0.06);}
 .progress-wrap{margin:10px 0 3px;}
 .progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:5px;}
 .progress-bar{height:7px;background:rgba(200,170,155,0.15);border-radius:4px;overflow:hidden;}
@@ -218,6 +218,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
 .settings-row:last-child{border-bottom:none;}
 .settings-label{font-size:12px;color:var(--text2);}
+
+/* BANK ACCOUNTS */
+.bank-card{background:#fff;border:1px solid var(--border2);border-radius:16px;padding:15px;margin-bottom:10px;box-shadow:0 2px 10px rgba(200,170,155,0.07);}
+.bank-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.bank-name{font-size:13px;font-weight:600;color:var(--text);}
+.bank-balance{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--green);}
+.bank-balance.negative{color:var(--red);}
+.bank-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;}
+.bank-meta-item{font-size:10px;color:var(--text2);}
+.bank-meta-item span{font-family:'DM Mono',monospace;font-weight:500;color:var(--text);}
+.bank-meta-item span.in{color:var(--green);}
+.bank-meta-item span.out{color:var(--red);}
+.bank-select{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text);outline:none;cursor:pointer;max-width:120px;}
+.bank-row-label{font-size:10px;color:var(--text2);margin-bottom:3px;}
 .remove-btn{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:4px 10px;font-size:10px;color:var(--text3);cursor:pointer;transition:all 0.2s;}
 .remove-btn:hover{border-color:var(--rose2);color:var(--rose2);}
 .footer{text-align:center;padding:18px 18px 50px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
@@ -256,6 +270,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <button class="tab-btn" onclick="showTab('savingsbook',this)"><span class="tab-icon">📖</span>Book</button>
   <button class="tab-btn" onclick="showTab('overview',this)"><span class="tab-icon">📊</span>Overview</button>
   <button class="tab-btn" onclick="showTab('history',this)"><span class="tab-icon">📅</span>History</button>
+  <button class="tab-btn" onclick="showTab('banks',this)"><span class="tab-icon">🏦</span>Banks</button>
   <button class="tab-btn" onclick="showTab('settings',this)"><span class="tab-icon">⚙️</span>Settings</button>
 </div>
 
@@ -266,7 +281,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="section-sub">Add your income sources for this period</div>
     <div class="card">
       <div class="card-header"><span class="card-title">Income Sources</span><button class="add-btn" onclick="addBvaRow('income-rows','income')">+</button></div>
-      <div class="bva-col-headers"><span class="bva-col-label">Source</span><span class="bva-col-label">Expected</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span></span></div>
+      <div class="bva-col-headers"><span class="bva-col-label">Source</span><span class="bva-col-label">Expected</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span class="bva-col-label">Bank</span><span></span></div>
       <div id="income-rows"></div>
     </div>
   </div>
@@ -279,7 +294,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="section-sub">Tap ✓ when paid — it counts toward actual spend</div>
     <div class="card">
       <div class="card-header"><span class="card-title">Monthly Fixed Costs</span><button class="add-btn" onclick="addFixedRow('fixed-rows')">+</button></div>
-      <div class="fixed-col-headers"><span class="bva-col-label"></span><span class="bva-col-label">Description</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span></span></div>
+      <div class="fixed-col-headers"><span class="bva-col-label"></span><span class="bva-col-label">Description</span><span class="bva-col-label">Budgeted</span><span class="bva-col-label">Actual</span><span class="bva-col-label">Left</span><span class="bva-col-label">Bank</span><span></span></div>
       <div id="fixed-rows"></div>
     </div>
     <div id="fixed-summary" style="margin-top:8px;"></div>
@@ -301,6 +316,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="bva-col-label">Budgeted</span>
         <span class="bva-col-label">Actual</span>
         <span class="bva-col-label">Left</span>
+        <span class="bva-col-label">Bank</span>
         <span></span>
       </div>
       <div id="variable-rows"></div>
@@ -412,6 +428,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div id="overviewGoalsBreakdown"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- BANKS -->
+<div id="tab-banks" class="tab-content">
+  <div class="section">
+    <div class="section-title">Bank Accounts 🏦</div>
+    <div class="section-sub">Track balances across all your accounts</div>
+    <div id="bank-total-card" style="margin-bottom:14px;"></div>
+    <div id="bank-accounts-list"></div>
+    <button class="new-month-btn" style="margin-top:4px;" onclick="openBankModal()">+ Add Account</button>
+    <div style="margin-top:14px;">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:3px;color:var(--text);">Transfers</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Move money between your accounts</div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Transfer Log</span><button class="add-btn" onclick="openTransferModal()">+</button></div>
+        <div id="transfer-list"><div class="empty-state" style="padding:20px 18px;">No transfers yet<br>Tap + to log one</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -591,9 +626,72 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field-row"><div class="field-label">Amount (XCG)</div><input class="modal-input" id="dailyExpenseAmount" type="number" placeholder="0"/></div>
     <div class="field-row"><div class="field-label">Note (optional)</div><input class="modal-input" id="dailyExpenseNote" placeholder="e.g. Lunch, Grocery run"/></div>
     <div class="field-row"><div class="field-label">Date</div><input class="modal-input" id="dailyExpenseDate" type="date"/></div>
+    <div class="field-row"><div class="field-label">Pay from Bank (optional)</div><select class="modal-input" id="dailyExpenseBank" style="cursor:pointer;"><option value="">— none —</option></select></div>
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('dailyExpenseModal')">Cancel</button>
       <button class="modal-btn primary" onclick="confirmDailyExpense()">Add Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Bank Modal -->
+<div class="modal-overlay" id="bankModal">
+  <div class="modal">
+    <div class="modal-title" id="bankModalTitle">Add Bank Account 🏦</div>
+    <div class="modal-sub">Enter your account details and opening balance</div>
+    <input type="hidden" id="editBankId"/>
+    <div class="field-row"><div class="field-label">Account Name</div><input class="modal-input" id="bankName" placeholder="e.g. MCB Chequing, Maduro Savings"/></div>
+    <div class="field-row"><div class="field-label">Account Type</div>
+      <select class="modal-input" id="bankType" style="cursor:pointer;">
+        <option value="chequing">Chequing</option>
+        <option value="savings">Savings</option>
+        <option value="credit">Credit Card</option>
+        <option value="cash">Cash</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="field-row"><div class="field-label">Beginning Balance (XCG)</div><input class="modal-input" id="bankBeginBalance" type="number" placeholder="0"/></div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('bankModal')">Cancel</button>
+      <button class="modal-btn primary" id="bankSaveBtn" onclick="confirmBank()">Add Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="modal-overlay" id="transferModal">
+  <div class="modal">
+    <div class="modal-title">Transfer 🔄</div>
+    <div class="modal-sub">Move money between accounts</div>
+    <div class="field-row"><div class="field-label">From Account</div>
+      <select class="modal-input" id="transferFrom" style="cursor:pointer;"><option value="">— select —</option></select>
+    </div>
+    <div class="field-row"><div class="field-label">To Account</div>
+      <select class="modal-input" id="transferTo" style="cursor:pointer;"><option value="">— select —</option></select>
+    </div>
+    <div class="field-row"><div class="field-label">Amount (XCG)</div><input class="modal-input" id="transferAmount" type="number" placeholder="0"/></div>
+    <div class="field-row"><div class="field-label">Note (optional)</div><input class="modal-input" id="transferNote" placeholder="e.g. Monthly savings transfer"/></div>
+    <div class="field-row"><div class="field-label">Date</div><input class="modal-input" id="transferDate" type="date"/></div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('transferModal')">Cancel</button>
+      <button class="modal-btn sky" onclick="confirmTransfer()">Transfer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Bank Modal (for editing existing income/fixed/variable rows) -->
+<div class="modal-overlay" id="assignBankModal">
+  <div class="modal">
+    <div class="modal-title" id="assignBankTitle">Assign Bank 🏦</div>
+    <div class="modal-sub" id="assignBankSub">Choose which account this is linked to</div>
+    <input type="hidden" id="assignBankType"/>
+    <input type="hidden" id="assignBankIdx"/>
+    <div class="field-row"><div class="field-label">Bank Account</div>
+      <select class="modal-input" id="assignBankSelect" style="cursor:pointer;"><option value="">— none —</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('assignBankModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="confirmAssignBank()">Save</button>
     </div>
   </div>
 </div>
@@ -609,7 +707,7 @@ let _editingGoalId = null;
 
 function load(){
   const d = localStorage.getItem(KEY);
-  if(d){ try{ S=JSON.parse(d); if(!S.savingsBook) S.savingsBook=[]; }catch(e){ init(); } }
+  if(d){ try{ S=JSON.parse(d); if(!S.savingsBook) S.savingsBook=[]; if(!S.banks) S.banks=[]; if(!S.transfers) S.transfers=[]; }catch(e){ init(); } }
   else{ init(); }
 }
 function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -646,13 +744,14 @@ function updatePeriodDisplay(){
 
 // ── BVA ROWS (income & variable) — with thousands-formatted display ───────────
 // We store raw numbers but show formatted display text, switching to plain number on focus
-function addBvaRow(cid, type, name='', budgeted='', actual=''){
+function addBvaRow(cid, type, name='', budgeted='', actual='', bankId=''){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='bva-row';
   const bFmt = budgeted ? formatNum(budgeted) : '';
   const aFmt = actual   ? formatNum(actual)   : '';
   const left=budgeted&&actual?parseFloat(budgeted)-parseFloat(actual):budgeted?parseFloat(budgeted):0;
   const leftBadge=_leftBadge(left);
+  const bankOpts=bankSelectHtml(bankId);
   row.innerHTML=`
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncBva('${cid}','${type}')"/>
     <input class="bva-input" placeholder="0" value="${bFmt}"
@@ -660,6 +759,7 @@ function addBvaRow(cid, type, name='', budgeted='', actual=''){
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInput(this)" onblur="fmtInput(this,'${cid}','${type}')" oninput="syncBva('${cid}','${type}')"/>
     <div class="row-left-badge">${leftBadge}</div>
+    ${bankOpts?`<select class="bank-select bank-row-select" onchange="syncBva('${cid}','${type}')">${bankOpts}</select>`:'<div></div>'}
     <button class="del-btn" onclick="this.parentElement.remove();syncBva('${cid}','${type}')">✕</button>`;
   c.appendChild(row); syncBva(cid,type);
 }
@@ -718,22 +818,27 @@ function syncBva(cid,type){
   const m=getM(), rows=document.querySelectorAll('#'+cid+' .bva-row');
   m[type]=Array.from(rows).map(r=>{
     const inp=r.querySelectorAll('.bva-input');
-    // parse stripping commas (value might be formatted or plain)
     const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
     const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
-    return{name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
+    const bankSel=r.querySelector('.bank-row-select');
+    const bankId=bankSel?bankSel.value:'';
+    const obj={name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
+    if(bankId) obj.bankId=bankId;
+    return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); updateBvaSummary(type); updateOverview(); updateRowLeftBadges(cid,type);
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 
 // ── FIXED ROWS ────────────────────────────────────────────────────────────────
-function addFixedRow(cid,name='',budgeted='',actual='',paid=false){
+function addFixedRow(cid,name='',budgeted='',actual='',paid=false,bankId=''){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='fixed-row'+(paid?' paid-row':'');
   const bFmt=budgeted?formatNum(budgeted):'';
   const aFmt=actual?formatNum(actual):'';
   const fLeft=budgeted?(parseFloat(budgeted)-(parseFloat(actual)||parseFloat(budgeted))):0;
   const fLeftBadge=_leftBadge(fLeft);
+  const bankOpts=bankSelectHtml(bankId);
   row.innerHTML=`<button class="paid-toggle${paid?' paid':''}" onclick="togglePaid(this)">${paid?'✓':''}</button>
     <input class="bva-name" placeholder="Description" value="${escHtml(name)}" oninput="syncFixed()"/>
     <input class="bva-input" placeholder="0" value="${bFmt}"
@@ -741,6 +846,7 @@ function addFixedRow(cid,name='',budgeted='',actual='',paid=false){
     <input class="bva-input actual" placeholder="0" value="${aFmt}"
       onfocus="unfmtInputFixed(this)" onblur="fmtInputFixed(this)" oninput="syncFixed()"/>
     <div class="row-left-badge">${fLeftBadge}</div>
+    ${bankOpts?`<select class="bank-select bank-row-select" onchange="syncFixed()">${bankOpts}</select>`:'<div></div>'}
     <button class="del-btn" onclick="this.parentElement.remove();syncFixed()">✕</button>`;
   c.appendChild(row); syncFixed();
 }
@@ -764,11 +870,16 @@ function syncFixed(){
   m.fixed=Array.from(rows).map(r=>{
     const inp=r.querySelectorAll('.bva-input');
     const paid=r.querySelector('.paid-toggle').classList.contains('paid');
-    return{name:r.querySelector('.bva-name').value,
+    const bankSel=r.querySelector('.bank-row-select');
+    const bankId=bankSel?bankSel.value:'';
+    const obj={name:r.querySelector('.bva-name').value,
       budgeted:parseFloat(String(inp[0].value).replace(/,/g,''))||0,
       actual:parseFloat(String(inp[1].value).replace(/,/g,''))||0, paid};
+    if(bankId) obj.bankId=bankId;
+    return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); renderFixedSummary(); updateOverview(); updateFixedLeftBadges();
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 function renderFixedSummary(){
   const f=getM().fixed||[];
@@ -811,13 +922,13 @@ function renderFixedSummary(){
 function renderAllRows(){
   const m=getM();
   document.getElementById('income-rows').innerHTML='';
-  (m.income||[]).forEach(r=>addBvaRow('income-rows','income',r.name,r.budgeted,r.actual));
+  (m.income||[]).forEach(r=>addBvaRow('income-rows','income',r.name,r.budgeted,r.actual,r.bankId||''));
   if(!(m.income||[]).length) addBvaRow('income-rows','income');
   document.getElementById('fixed-rows').innerHTML='';
-  (m.fixed||[]).forEach(r=>addFixedRow('fixed-rows',r.name,r.budgeted,r.actual,r.paid));
+  (m.fixed||[]).forEach(r=>addFixedRow('fixed-rows',r.name,r.budgeted,r.actual,r.paid,r.bankId||''));
   if(!(m.fixed||[]).length) addFixedRow('fixed-rows');
   document.getElementById('variable-rows').innerHTML='';
-  (m.variable||[]).forEach(r=>addBvaRow('variable-rows','variable',r.name,r.budgeted,r.actual));
+  (m.variable||[]).forEach(r=>addBvaRow('variable-rows','variable',r.name,r.budgeted,r.actual,r.bankId||''));
   if(!(m.variable||[]).length) addBvaRow('variable-rows','variable');
   renderFixedSummary(); updateBvaSummary('variable'); renderDailyExpenses();
 }
@@ -1443,6 +1554,7 @@ function showTab(name,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active');
   if(name==='overview')    updateOverview();
+  if(name==='banks')       renderBanks();
   if(name==='history')     renderHistory();
   if(name==='savingsbook') renderSavingsBook();
 }
@@ -1493,6 +1605,8 @@ function openDailyExpenseModal(){
   sel.innerHTML='<option value="">— select category —</option>';
   cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
   document.getElementById('dailyExpenseDate').value=new Date().toISOString().split('T')[0];
+  const dbSel=document.getElementById('dailyExpenseBank');
+  if(dbSel){ dbSel.innerHTML='<option value="">— none —</option>'; (S.banks||[]).forEach(b=>{ dbSel.innerHTML+=`<option value="${b.id}">${b.name}</option>`; }); }
   openModal('dailyExpenseModal');
 }
 
@@ -1504,7 +1618,8 @@ function confirmDailyExpense(){
   const date=document.getElementById('dailyExpenseDate').value;
   const m=getM();
   if(!m.dailyExpenses) m.dailyExpenses=[];
-  m.dailyExpenses.push({cat,amount,note,date});
+  const deBankId=document.getElementById('dailyExpenseBank')?document.getElementById('dailyExpenseBank').value:'';
+  m.dailyExpenses.push({cat,amount,note,date,bankId:deBankId||undefined});
   // Accumulate into variable actual
   const varRow=m.variable.find(r=>r.name===cat);
   if(varRow){ varRow.actual=(varRow.actual||0)+amount; }
@@ -1565,6 +1680,251 @@ function formatDisplayDate(dateStr){
   if(!dateStr) return '—';
   const d=new Date(dateStr+'T00:00:00');
   return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+
+// ── BANK ACCOUNTS ─────────────────────────────────────────────────────────────
+
+function getBankById(id){ return (S.banks||[]).find(b=>b.id===id); }
+
+function bankBalance(b){
+  // balance = beginBalance + all income assigned to this bank - all expenses assigned - transfers out + transfers in
+  const m = getM(); // current period context for income/fixed/variable
+  let bal = parseFloat(b.beginBalance)||0;
+  // Income
+  (m.income||[]).forEach(r=>{ if(r.bankId===b.id) bal+=r.actual||0; });
+  // Fixed (paid only)
+  (m.fixed||[]).forEach(r=>{ if(r.paid && r.bankId===b.id) bal-=(r.actual||r.budgeted||0); });
+  // Variable
+  (m.variable||[]).forEach(r=>{ if(r.bankId===b.id) bal-=r.actual||0; });
+  // Daily expenses
+  (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
+  // Transfers (global)
+  (S.transfers||[]).forEach(t=>{
+    if(t.fromId===b.id) bal-=t.amount||0;
+    if(t.toId===b.id)   bal+=t.amount||0;
+  });
+  return bal;
+}
+
+function bankInOut(b){
+  const m=getM();
+  let totalIn=0, totalOut=0;
+  (m.income||[]).forEach(r=>{ if(r.bankId===b.id) totalIn+=r.actual||0; });
+  (m.fixed||[]).forEach(r=>{ if(r.paid&&r.bankId===b.id) totalOut+=(r.actual||r.budgeted||0); });
+  (m.variable||[]).forEach(r=>{ if(r.bankId===b.id) totalOut+=r.actual||0; });
+  (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) totalOut+=e.amount||0; });
+  (S.transfers||[]).forEach(t=>{
+    if(t.fromId===b.id) totalOut+=t.amount||0;
+    if(t.toId===b.id)   totalIn+=t.amount||0;
+  });
+  return{totalIn,totalOut};
+}
+
+function renderBanks(){
+  if(!S.banks) S.banks=[];
+  if(!S.transfers) S.transfers=[];
+  const list=document.getElementById('bank-accounts-list'); if(!list) return;
+  list.innerHTML='';
+
+  const grandTotal=S.banks.reduce((a,b)=>a+bankBalance(b),0);
+  const totalCard=document.getElementById('bank-total-card');
+  if(totalCard){
+    totalCard.innerHTML=S.banks.length?`
+      <div style="background:linear-gradient(135deg,#edf9f3,#e8f4fd);border:1px solid rgba(114,199,168,0.4);border-radius:18px;padding:18px;text-align:center;">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mint2);margin-bottom:6px;">Total Across All Accounts</div>
+        <div style="font-family:'Playfair Display',serif;font-size:32px;color:${grandTotal>=0?'var(--green)':'var(--red)'};">${(grandTotal<0?'-':'')+fmtN(grandTotal)}</div>
+      </div>`:'';
+  }
+
+  if(!S.banks.length){
+    list.innerHTML='<div class="empty-state">No bank accounts yet 🏦<br>Tap + Add Account to get started</div>';
+    renderTransfers(); return;
+  }
+
+  const typeIcon={chequing:'🏦',savings:'💰',credit:'💳',cash:'💵',other:'🏧'};
+  S.banks.forEach(b=>{
+    const bal=bankBalance(b);
+    const{totalIn,totalOut}=bankInOut(b);
+    list.innerHTML+=`<div class="bank-card">
+      <div class="bank-card-header">
+        <div>
+          <div class="bank-name">${typeIcon[b.type]||'🏦'} ${b.name}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:capitalize;">${b.type} · Opening: ${fmtN(b.beginBalance||0)}</div>
+        </div>
+        <div class="bank-balance ${bal<0?'negative':''}">${(bal<0?'-':'')+fmtN(bal)}</div>
+      </div>
+      <div class="bank-meta">
+        <div class="bank-meta-item">In this period: <span class="in">+${fmtN(totalIn)}</span></div>
+        <div class="bank-meta-item">Out this period: <span class="out">-${fmtN(totalOut)}</span></div>
+      </div>
+      <div class="debt-actions">
+        <button class="action-btn edit" onclick="openEditBank('${b.id}')">✏️ Edit</button>
+        <button class="action-btn danger" onclick="removeBank('${b.id}')">🗑 Delete</button>
+      </div>
+    </div>`;
+  });
+  renderTransfers();
+}
+
+function renderTransfers(){
+  const list=document.getElementById('transfer-list'); if(!list) return;
+  const transfers=S.transfers||[];
+  if(!transfers.length){ list.innerHTML='<div class="empty-state" style="padding:20px 18px;">No transfers yet<br>Tap + to log one</div>'; return; }
+  list.innerHTML='';
+  [...transfers].reverse().forEach((t,ri)=>{
+    const i=transfers.length-1-ri;
+    const fromB=getBankById(t.fromId), toB=getBankById(t.toId);
+    list.innerHTML+=`<div class="deposit-row">
+      <div class="deposit-dot" style="background:var(--lavender2);"></div>
+      <div class="deposit-info">
+        <div class="deposit-note">${fromB?fromB.name:'?'} → ${toB?toB.name:'?'}${t.note?' · '+t.note:''}</div>
+        <div class="deposit-date">${t.date||'—'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="deposit-amount positive" style="color:var(--lavender2);">${fmtN(t.amount)}</div>
+        <button class="del-btn" onclick="removeTransfer(${i})">✕</button>
+      </div>
+    </div>`;
+  });
+}
+
+// ── Bank CRUD ─────────────────────────────────────────────────────────────────
+function openBankModal(){
+  document.getElementById('bankModalTitle').textContent='Add Bank Account 🏦';
+  document.getElementById('bankSaveBtn').textContent='Add Account';
+  document.getElementById('editBankId').value='';
+  ['bankName','bankBeginBalance'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('bankType').value='chequing';
+  openModal('bankModal');
+}
+
+function openEditBank(id){
+  const b=getBankById(id); if(!b) return;
+  document.getElementById('bankModalTitle').textContent='Edit Account 🏦';
+  document.getElementById('bankSaveBtn').textContent='Save Changes';
+  document.getElementById('editBankId').value=id;
+  document.getElementById('bankName').value=b.name;
+  document.getElementById('bankType').value=b.type;
+  document.getElementById('bankBeginBalance').value=b.beginBalance||0;
+  openModal('bankModal');
+}
+
+function confirmBank(){
+  if(!S.banks) S.banks=[];
+  const name=document.getElementById('bankName').value.trim();
+  if(!name) return;
+  const type=document.getElementById('bankType').value;
+  const begin=parseFloat(document.getElementById('bankBeginBalance').value)||0;
+  const editId=document.getElementById('editBankId').value;
+  if(editId){
+    const b=getBankById(editId); if(!b) return;
+    b.name=name; b.type=type; b.beginBalance=begin;
+  } else {
+    S.banks.push({id:'b'+Date.now(),name,type,beginBalance:begin});
+  }
+  save(); renderBanks(); closeModal('bankModal');
+  updateBankSelects();
+}
+
+function removeBank(id){
+  if(!confirm('Remove this account? Bank assignments on transactions will be cleared.')) return;
+  S.banks=(S.banks||[]).filter(b=>b.id!==id);
+  // clear assignments
+  const m=getM();
+  [...(m.income||[]),...(m.fixed||[]),...(m.variable||[])].forEach(r=>{ if(r.bankId===id) delete r.bankId; });
+  (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===id) delete e.bankId; });
+  S.transfers=(S.transfers||[]).filter(t=>t.fromId!==id&&t.toId!==id);
+  save(); renderBanks(); updateBankSelects();
+}
+
+// ── Transfers ─────────────────────────────────────────────────────────────────
+function openTransferModal(){
+  if(!S.banks||!S.banks.length){ alert('Add at least one bank account first.'); return; }
+  const fd=document.getElementById('transferFrom'), td=document.getElementById('transferTo');
+  fd.innerHTML=td.innerHTML='<option value="">— select —</option>';
+  (S.banks||[]).forEach(b=>{
+    fd.innerHTML+=`<option value="${b.id}">${b.name}</option>`;
+    td.innerHTML+=`<option value="${b.id}">${b.name}</option>`;
+  });
+  document.getElementById('transferDate').value=new Date().toISOString().split('T')[0];
+  ['transferAmount','transferNote'].forEach(id=>document.getElementById(id).value='');
+  openModal('transferModal');
+}
+
+function confirmTransfer(){
+  const fromId=document.getElementById('transferFrom').value;
+  const toId=document.getElementById('transferTo').value;
+  const amount=parseFloat(document.getElementById('transferAmount').value)||0;
+  if(!fromId||!toId||!amount||fromId===toId){ alert('Please select two different accounts and an amount.'); return; }
+  if(!S.transfers) S.transfers=[];
+  S.transfers.push({
+    id:'tr'+Date.now(), fromId, toId, amount,
+    note:document.getElementById('transferNote').value.trim(),
+    date:document.getElementById('transferDate').value
+  });
+  save(); renderBanks(); closeModal('transferModal');
+}
+
+function removeTransfer(i){
+  (S.transfers||[]).splice(i,1);
+  save(); renderBanks();
+}
+
+// ── Assign bank to existing transactions ──────────────────────────────────────
+function openAssignBank(type, idx){
+  if(!S.banks||!S.banks.length){ alert('Add a bank account first on the Banks tab.'); return; }
+  const m=getM();
+  let row, label='';
+  if(type==='income')   { row=(m.income||[])[idx];   label=row?row.name:'Income'; }
+  if(type==='fixed')    { row=(m.fixed||[])[idx];    label=row?row.name:'Fixed expense'; }
+  if(type==='variable') { row=(m.variable||[])[idx]; label=row?row.name:'Variable expense'; }
+  if(!row) return;
+  document.getElementById('assignBankTitle').textContent='Assign Bank 🏦';
+  document.getElementById('assignBankSub').textContent=`"${label}" — choose which account`;
+  document.getElementById('assignBankType').value=type;
+  document.getElementById('assignBankIdx').value=idx;
+  const sel=document.getElementById('assignBankSelect');
+  sel.innerHTML='<option value="">— none —</option>';
+  (S.banks||[]).forEach(b=>{
+    sel.innerHTML+=`<option value="${b.id}"${row.bankId===b.id?' selected':''}>${b.name}</option>`;
+  });
+  openModal('assignBankModal');
+}
+
+function confirmAssignBank(){
+  const type=document.getElementById('assignBankType').value;
+  const idx=parseInt(document.getElementById('assignBankIdx').value);
+  const bankId=document.getElementById('assignBankSelect').value;
+  const m=getM();
+  let row;
+  if(type==='income')   row=(m.income||[])[idx];
+  if(type==='fixed')    row=(m.fixed||[])[idx];
+  if(type==='variable') row=(m.variable||[])[idx];
+  if(!row) return;
+  if(bankId) row.bankId=bankId; else delete row.bankId;
+  save(); renderBanks(); closeModal('assignBankModal');
+  // re-render the relevant tab rows to show updated badge
+  if(type==='income')   renderAllRows();
+  if(type==='fixed')    renderAllRows();
+  if(type==='variable') renderAllRows();
+}
+
+// ── Populate bank dropdown selects on income/fixed/variable rows ──────────────
+function bankSelectHtml(currentBankId=''){
+  if(!S.banks||!S.banks.length) return '';
+  let opts='<option value="">🏦 Bank?</option>';
+  (S.banks||[]).forEach(b=>{ opts+=`<option value="${b.id}"${currentBankId===b.id?' selected':''}>${b.name}</option>`; });
+  return opts;
+}
+
+function updateBankSelects(){
+  // Update all existing bank selects in income/fixed/variable rows
+  document.querySelectorAll('.bank-row-select').forEach(sel=>{
+    const currentVal=sel.value;
+    sel.innerHTML=bankSelectHtml(currentVal);
+    if(currentVal) sel.value=currentVal;
+  });
 }
 
 
