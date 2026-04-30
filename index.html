@@ -700,6 +700,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Edit Daily Expense Modal -->
+<div class="modal-overlay" id="editDailyExpenseModal">
+  <div class="modal">
+    <div class="modal-title">Edit Expense 🛒</div>
+    <div class="modal-sub">Update details or assign a bank</div>
+    <input type="hidden" id="editDailyIdx"/>
+    <div class="field-row"><div class="field-label">Category</div>
+      <select class="modal-input" id="editDailyCategory" style="cursor:pointer;"><option value="">— select —</option></select>
+    </div>
+    <div class="field-row"><div class="field-label">Amount (XCG)</div>
+      <input class="modal-input" id="editDailyAmount" type="number" placeholder="0"/>
+    </div>
+    <div class="field-row"><div class="field-label">Note (optional)</div>
+      <input class="modal-input" id="editDailyNote" placeholder="e.g. Lunch, Grocery run"/>
+    </div>
+    <div class="field-row"><div class="field-label">Date</div>
+      <input class="modal-input" id="editDailyDate" type="date"/>
+    </div>
+    <div class="field-row"><div class="field-label">Pay from Bank (optional)</div>
+      <select class="modal-input" id="editDailyBank" style="cursor:pointer;"><option value="">— none / cash —</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('editDailyExpenseModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="confirmEditDailyExpense()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -751,6 +779,7 @@ function updatePeriodDisplay(){
 function addBvaRow(cid, type, name='', budgeted='', actual='', bankId=''){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='bva-row';
+  if(bankId) row.dataset.bankid=bankId;
   const bFmt = budgeted ? formatNum(budgeted) : '';
   const aFmt = actual   ? formatNum(actual)   : '';
   const left=budgeted&&actual?parseFloat(budgeted)-parseFloat(actual):budgeted?parseFloat(budgeted):0;
@@ -825,9 +854,8 @@ function syncBva(cid,type){
     const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
     const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
     const obj={name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
-    // preserve bankId stored on the data — don't overwrite from a select that no longer exists
-    const m2=getM(); const existing=(m2[type]||[])[Array.from(r.parentElement.children).indexOf(r)];
-    if(existing&&existing.bankId) obj.bankId=existing.bankId;
+    // bankId is stored on the DOM element itself — never lost on re-render
+    if(r.dataset.bankid) obj.bankId=r.dataset.bankid;
     return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); updateBvaSummary(type); updateOverview(); updateRowLeftBadges(cid,type);
@@ -838,6 +866,7 @@ function syncBva(cid,type){
 function addFixedRow(cid,name='',budgeted='',actual='',paid=false,bankId=''){
   const c=document.getElementById(cid), row=document.createElement('div');
   row.className='fixed-row'+(paid?' paid-row':'');
+  if(bankId) row.dataset.bankid=bankId;
   const bFmt=budgeted?formatNum(budgeted):'';
   const aFmt=actual?formatNum(actual):'';
   const fLeft=budgeted?(parseFloat(budgeted)-(parseFloat(actual)||parseFloat(budgeted))):0;
@@ -877,8 +906,7 @@ function syncFixed(){
     const obj={name:r.querySelector('.bva-name').value,
       budgeted:parseFloat(String(inp[0].value).replace(/,/g,''))||0,
       actual:parseFloat(String(inp[1].value).replace(/,/g,''))||0, paid};
-    const mf=getM(); const existingF=(mf.fixed||[])[Array.from(r.parentElement.children).indexOf(r)];
-    if(existingF&&existingF.bankId) obj.bankId=existingF.bankId;
+    if(r.dataset.bankid) obj.bankId=r.dataset.bankid;
     return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
   save(); updateSummary(); renderFixedSummary(); updateOverview(); updateFixedLeftBadges();
@@ -1668,20 +1696,75 @@ function renderDailyExpenses(){
       <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);">${fmtN(dayTotal)}</span>
     </div>`;
     byDate[date].forEach(e=>{
-      html+=`<div class="deposit-row">
-        <div class="deposit-dot" style="background:var(--peach2);"></div>
-        <div class="deposit-info">
+      const bankName=e.bankId?(S.banks||[]).find(b=>b.id===e.bankId)?.name:'';
+      html+=`<div class="deposit-row" style="flex-wrap:wrap;gap:6px;">
+        <div class="deposit-dot" style="background:var(--peach2);flex-shrink:0;"></div>
+        <div class="deposit-info" style="min-width:0;flex:1;">
           <div class="deposit-note">${e.note||e.cat}</div>
-          <div class="deposit-date" style="color:var(--peach2);">${e.cat}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
+            <span class="deposit-date" style="color:var(--peach2);">${e.cat}</span>
+            ${bankName?`<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:6px;background:rgba(122,184,232,0.15);color:var(--sky2);">🏦 ${bankName}</span>`:''}
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;">
           <div class="deposit-amount positive" style="color:var(--text);">−${fmtN(e.amount)}</div>
+          <button class="del-btn" style="font-size:14px;color:${e.bankId?'var(--sky2)':'var(--text3)'};" onclick="openEditDailyExpense(${e.idx})" title="Edit / assign bank">✏️</button>
           <button class="del-btn" onclick="removeDailyExpense(${e.idx})">✕</button>
         </div>
       </div>`;
     });
   });
   list.innerHTML=html;
+}
+
+
+function openEditDailyExpense(idx){
+  const m=getM();
+  const e=(m.dailyExpenses||[])[idx]; if(!e) return;
+  document.getElementById('editDailyIdx').value=idx;
+  // Populate category dropdown
+  const cats=(m.variable||[]).map(r=>r.name).filter(Boolean);
+  const catSel=document.getElementById('editDailyCategory');
+  catSel.innerHTML='<option value="">— select —</option>';
+  cats.forEach(c=>{ catSel.innerHTML+=`<option value="${c}"${e.cat===c?' selected':''}}>${c}</option>`; });
+  document.getElementById('editDailyAmount').value=e.amount||'';
+  document.getElementById('editDailyNote').value=e.note||'';
+  document.getElementById('editDailyDate').value=e.date||'';
+  // Populate bank dropdown
+  const bankSel=document.getElementById('editDailyBank');
+  bankSel.innerHTML='<option value="">— none / cash —</option>';
+  (S.banks||[]).forEach(b=>{ bankSel.innerHTML+=`<option value="${b.id}"${e.bankId===b.id?' selected':''}}>${b.name}</option>`; });
+  openModal('editDailyExpenseModal');
+}
+
+function confirmEditDailyExpense(){
+  const m=getM();
+  const idx=parseInt(document.getElementById('editDailyIdx').value);
+  const entries=m.dailyExpenses||[];
+  const old=entries[idx]; if(!old) return;
+
+  const newCat=document.getElementById('editDailyCategory').value||old.cat;
+  const newAmount=parseFloat(document.getElementById('editDailyAmount').value)||old.amount;
+  const newNote=document.getElementById('editDailyNote').value.trim();
+  const newDate=document.getElementById('editDailyDate').value||old.date;
+  const newBankId=document.getElementById('editDailyBank').value;
+
+  // Adjust variable actual: reverse old, apply new
+  if(old.cat!==newCat || old.amount!==newAmount){
+    const oldRow=m.variable.find(r=>r.name===old.cat);
+    if(oldRow) oldRow.actual=Math.max(0,(oldRow.actual||0)-old.amount);
+    const newRow=m.variable.find(r=>r.name===newCat);
+    if(newRow) newRow.actual=(newRow.actual||0)+newAmount;
+  }
+
+  // Update entry
+  entries[idx]={...old, cat:newCat, amount:newAmount, note:newNote, date:newDate};
+  if(newBankId) entries[idx].bankId=newBankId;
+  else delete entries[idx].bankId;
+
+  save(); renderAllRows(); renderDailyExpenses(); updateSummary(); updateOverview();
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
+  closeModal('editDailyExpenseModal');
 }
 
 function removeDailyExpense(idx){
@@ -1693,6 +1776,7 @@ function removeDailyExpense(idx){
   if(varRow){ varRow.actual=Math.max(0,(varRow.actual||0)-e.amount); }
   m.dailyExpenses.splice(idx,1);
   save(); renderAllRows(); renderDailyExpenses(); updateSummary(); updateOverview();
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 
 function formatDisplayDate(dateStr){
@@ -1937,7 +2021,8 @@ function openAssignBankFromRow(btn, cid, type){
   const m=getM();
   const data=m[type]||[];
   const existing=data[idx];
-  const currentBankId=existing?existing.bankId:'';
+  // Read from DOM data attribute first (most reliable), fall back to stored data
+  const currentBankId=row.dataset.bankid||( existing?existing.bankId:'' )||'';
   openAssignBankModal(type, idx, currentBankId, btn);
 }
 
@@ -2001,13 +2086,15 @@ function confirmAssignBank(){
   if(!row) return;
   if(bankId) row.bankId=bankId; else delete row.bankId;
   save();
-  // Update the 🏦 button color to indicate assignment
+  // Update data-bankid on the DOM row element so sync never loses it
   const cid=type==='fixed'?'fixed-rows':type+'-rows';
   const container=document.getElementById(cid);
   if(container){
     const rowEls=Array.from(container.querySelectorAll(type==='fixed'?'.fixed-row':'.bva-row'));
     const rowEl=rowEls[idx];
     if(rowEl){
+      if(bankId) rowEl.dataset.bankid=bankId;
+      else delete rowEl.dataset.bankid;
       const btns=rowEl.querySelectorAll('.del-btn');
       const bankBtn=Array.from(btns).find(b=>b.textContent==='🏦');
       if(bankBtn){
