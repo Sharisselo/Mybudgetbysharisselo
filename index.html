@@ -1153,25 +1153,13 @@ function updateBvaTable(){
   const netActual=incActual-t.fixedActual-t.varActual-savedThisPeriod;
 
   const rows=[
-    {label:'Income',   budget:incBudget,    actual:incActual,      income:true},
-    {label:'Fixed',    budget:fixedBudget,  actual:t.fixedActual,  income:false},
-    {label:'Variable', budget:varBudget,    actual:t.varActual,    income:false},
-    {label:'Saved',    budget:0,            actual:savedThisPeriod,income:false, isSaved:true},
+    {label:'Income',   budget:incBudget,    actual:incActual,     income:true},
+    {label:'Fixed',    budget:fixedBudget,  actual:t.fixedActual, income:false},
+    {label:'Variable', budget:varBudget,    actual:t.varActual,   income:false},
   ];
 
   let html='';
-  // Column header
   rows.forEach(r=>{
-    if(r.isSaved){
-      // Saved row — no budget col, just actual
-      html+=`<div class="bva-ov-row" style="background:rgba(122,184,232,0.06);">
-        <span style="color:var(--sky2);">🎯 Saved (this period)</span>
-        <span class="bva-ov-val">—</span>
-        <span class="bva-ov-val" style="color:var(--sky2);">${fmtN(r.actual)}</span>
-        <span class="bva-ov-val"><span class="diff-badge diff-under">−${fmtN(r.actual)}</span></span>
-      </div>`;
-      return;
-    }
     const diff=r.income?r.actual-r.budget:r.budget-r.actual;
     const dc=diff>0?'diff-under':diff<0?'diff-over':'diff-zero';
     const dl=diff===0?'—':(diff>0?'+':'')+fmtN(Math.abs(diff));
@@ -1180,15 +1168,6 @@ function updateBvaTable(){
 
   if(t.carryover>0){
     html+=`<div class="bva-ov-row rollover-row"><span style="color:var(--green);font-size:10px;">↩ Carryover</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val"><span class="diff-badge diff-under">+</span></span></div>`;
-  }
-
-  if(t.debtPaid>0){
-    html+=`<div class="bva-ov-row" style="background:rgba(212,96,122,0.04);">
-      <span style="color:var(--red);font-size:10px;">💳 Debt payments</span>
-      <span class="bva-ov-val">—</span>
-      <span class="bva-ov-val" style="color:var(--red);">${fmtN(t.debtPaid)}</span>
-      <span class="bva-ov-val"><span class="diff-badge diff-over">−${fmtN(t.debtPaid)}</span></span>
-    </div>`;
   }
 
   // Net remaining row — actual income minus all actual spend and saved
