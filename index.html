@@ -536,8 +536,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field-row"><div class="field-label">Goal Name</div><input class="modal-input" id="goalName" placeholder="e.g. Emergency Fund, Vacation"/></div>
     <div class="field-row"><div class="field-label">Target Amount (XCG)</div><input class="modal-input" id="goalTarget" type="number" placeholder="5000"/></div>
     <div class="field-row">
-      <div class="field-label">Beginning Balance / Already Saved (XCG)</div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Enter what you already have saved toward this goal</div>
+      <div class="field-label">Beginning Balance (XCG)</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">What you already had saved before this period — monthly contributions are added on top</div>
       <input class="modal-input" id="goalSaved" type="number" placeholder="0"/>
     </div>
     <div class="modal-btns">
@@ -890,7 +890,10 @@ function syncBva(cid,type){
     if(r.dataset.bankid) obj.bankId=r.dataset.bankid;
     return obj;
   }).filter(r=>r.name||r.budgeted||r.actual);
-  save(); updateSummary(); updateBvaSummary(type); updateOverview(); updateRowLeftBadges(cid,type);
+  save();
+  // Recalc next month carryover if editing a past month
+  if(S.currentIdx < S.months.length-1) recalcNextMonthCarryover(S.currentIdx);
+  updateSummary(); updateBvaSummary(type); updateOverview(); updateRowLeftBadges(cid,type);
   if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 
@@ -1363,8 +1366,12 @@ function renderGoals(){
     const rem=Math.max(tgt-ts,0);
     list.innerHTML+=`<div class="goal-card" data-gid="${g.id}">
       <div class="goal-header">
-        <div><div class="goal-name">${g.name}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px;">Beginning balance: ${fmtN(g.beginBalance||0)}</div>
+        <div>
+          <div class="goal-name">${g.name}</div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+            <span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(173,144,216,0.15);color:var(--lavender2);">Opening: ${fmtN(g.beginBalance||0)}</span>
+            ${tc>0?`<span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(122,184,232,0.15);color:var(--sky2);">+ ${fmtN(tc)} this period</span>`:''}
+          </div>
         </div>
         <div class="goal-pct">${pct}%</div>
       </div>
@@ -1399,7 +1406,8 @@ function openGoalEdit(id){
   document.getElementById('goalSaveBtn').textContent='Save Changes';
   document.getElementById('goalName').value=g.name;
   document.getElementById('goalTarget').value=g.target;
-  document.getElementById('goalSaved').value=g.totalSaved||0;
+  // Only pre-fill with beginBalance — NOT totalSaved (which includes contributions)
+  document.getElementById('goalSaved').value=g.beginBalance||0;
   openModal('goalModal');
 }
 
@@ -1634,6 +1642,10 @@ function confirmNewMonth(){
   if(toSavings>0){ S.savingsBook.push({amount:toSavings,note:'Rollover from '+prev.name,date:new Date().toISOString().split('T')[0],type:'deposit'}); }
   const nm={name,income:[],variable:[],debtPayments:{},goalContribs:{},carryover,carryoverIsRollover:carryover>0};
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
+  // Roll each goal's totalSaved forward as the new beginBalance
+  S.globalGoals.forEach(g=>{
+    g.beginBalance=g.totalSaved||0;
+  });
   S.months.push(nm); S.currentIdx=S.months.length-1;
   save(); refreshAll(); closeModal('newMonthModal');
 }
@@ -1721,19 +1733,9 @@ function onDataChange(){
 }
 
 // Patch syncBva and syncFixed to trigger recalc
-const _origSyncBva=syncBva;
-function syncBva(cid,type){
-  const m=getM(), rows=document.querySelectorAll('#'+cid+' .bva-row');
-  m[type]=Array.from(rows).map(r=>{
-    const inp=r.querySelectorAll('.bva-input');
-    const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
-    const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
-    return{name:r.querySelector('.bva-name').value,budgeted:b,actual:a};
-  }).filter(r=>r.name||r.budgeted||r.actual);
-  save();
-  if(S.currentIdx < S.months.length-1) recalcNextMonthCarryover(S.currentIdx);
-  updateSummary(); updateBvaSummary(type); updateOverview();
-}
+// Carryover recalc is now merged directly into the main syncBva above.
+// This stub is kept to avoid reference errors but does nothing.
+const _origSyncBva=null;
 
 function refreshAll(){
   updatePeriodDisplay(); renderAllRows(); renderDebts(); renderGoals();
