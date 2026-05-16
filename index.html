@@ -232,6 +232,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bank-meta-item span.out{color:var(--red);}
 .bank-select{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text);outline:none;cursor:pointer;max-width:120px;}
 .bank-row-label{font-size:10px;color:var(--text2);margin-bottom:3px;}
+
+.goal-tx-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.goal-tx-row:last-child{border-bottom:none;}
+.goal-tx-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.goal-tx-info{flex:1;min-width:0;}
+.goal-tx-note{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.goal-tx-date{font-size:10px;color:var(--text3);margin-top:1px;}
+.goal-tx-amount{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;white-space:nowrap;}
+.goal-tx-amount.in{color:var(--green);}
+.goal-tx-amount.out{color:var(--red);}
+.goal-log-toggle{background:none;border:none;font-size:10px;color:var(--text3);cursor:pointer;padding:4px 0;text-decoration:underline;letter-spacing:0.5px;}
+.goal-log-toggle:hover{color:var(--rose2);}
 .remove-btn{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:4px 10px;font-size:10px;color:var(--text3);cursor:pointer;transition:all 0.2s;}
 .remove-btn:hover{border-color:var(--rose2);color:var(--rose2);}
 .footer{text-align:center;padding:18px 18px 50px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
@@ -752,6 +764,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('editDepositModal')">Cancel</button>
       <button class="modal-btn green" onclick="confirmEditDeposit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Transaction Modal -->
+<div class="modal-overlay" id="goalTxModal">
+  <div class="modal">
+    <div class="modal-title" id="goalTxTitle">Use Funds 💸</div>
+    <div class="modal-sub" id="goalTxSub">Log a withdrawal from this goal</div>
+    <input type="hidden" id="goalTxId"/>
+    <input type="hidden" id="goalTxType"/>
+    <div class="field-row"><div class="field-label">Amount (XCG)</div>
+      <input class="modal-input" id="goalTxAmount" type="number" placeholder="0"/>
+    </div>
+    <div class="field-row"><div class="field-label">Note (optional)</div>
+      <input class="modal-input" id="goalTxNote" placeholder="e.g. Emergency car repair"/>
+    </div>
+    <div class="field-row"><div class="field-label">Date</div>
+      <input class="modal-input" id="goalTxDate" type="date"/>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('goalTxModal')">Cancel</button>
+      <button class="modal-btn primary" id="goalTxBtn" onclick="confirmGoalTransaction()">Confirm</button>
     </div>
   </div>
 </div>
@@ -1343,6 +1378,29 @@ function renderGoals(){
     const ts=g.totalSaved||0, tgt=parseFloat(g.target)||0;
     const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
     const rem=Math.max(tgt-ts,0);
+    const txLog=g.transactions||[];
+    // Build transaction log HTML
+    let txHtml='';
+    if(txLog.length){
+      txHtml=`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">Transaction Log</div>`;
+      [...txLog].reverse().forEach((tx,ri)=>{
+        const realIdx=txLog.length-1-ri;
+        const isOut=tx.type==='withdrawal';
+        txHtml+=`<div class="goal-tx-row">
+          <div class="goal-tx-dot" style="background:${isOut?'var(--rose2)':'var(--mint2)'}"></div>
+          <div class="goal-tx-info">
+            <div class="goal-tx-note">${tx.note||( isOut?'Withdrawal':'Deposit')}</div>
+            <div class="goal-tx-date">${tx.date||'—'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="goal-tx-amount ${isOut?'out':'in'}">${isOut?'−':'+'}${fmtN(tx.amount)}</span>
+            <button class="del-btn" style="font-size:12px;" onclick="removeGoalTransaction('${g.id}',${realIdx})">✕</button>
+          </div>
+        </div>`;
+      });
+      txHtml+='</div>';
+    }
     list.innerHTML+=`<div class="goal-card" data-gid="${g.id}">
       <div class="goal-header">
         <div>
@@ -1363,11 +1421,18 @@ function renderGoals(){
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--red)">${fmtN(rem)}</div><div class="goal-total-lbl">Remaining</div></div>
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--green)">${pct}%</div><div class="goal-total-lbl">Progress</div></div>
       </div>
-      <div class="debt-this-month" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <!-- Transaction log -->
+      ${txHtml}
+      <!-- Add to savings / withdraw -->
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
         <div class="debt-month-label">Add to savings this period</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="number" value="${tc||''}" placeholder="0" class="small-input" onchange="updateGoalContrib('${g.id}',this.value)"/>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+          <input type="number" value="${tc||''}" placeholder="0" class="small-input" style="flex:1;" onchange="updateGoalContrib('${g.id}',this.value)"/>
         </div>
+      </div>
+      <div class="debt-actions" style="margin-top:8px;">
+        <button class="action-btn edit" style="background:rgba(212,96,122,0.1);color:var(--red);border-color:rgba(212,96,122,0.25);" onclick="openGoalTransaction('${g.id}','withdrawal')">💸 Use Funds</button>
+        <button class="action-btn edit" onclick="openGoalTransaction('${g.id}','deposit')">💰 Add Funds</button>
       </div>
       <div class="debt-actions">
         <button class="action-btn edit" onclick="openGoalEdit('${g.id}')">✏️ Edit Goal</button>
@@ -1376,6 +1441,53 @@ function renderGoals(){
     </div>`;
   });
   if(!S.globalGoals.length) list.innerHTML='<div class="empty-state">No savings goals yet 🌸<br>Tap + Add Goal to get started</div>';
+}
+
+
+function openGoalTransaction(id, type){
+  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
+  document.getElementById('goalTxId').value=id;
+  document.getElementById('goalTxType').value=type;
+  const isOut=type==='withdrawal';
+  document.getElementById('goalTxTitle').textContent=isOut?`Use Funds 💸 — ${g.name}`:`Add Funds 💰 — ${g.name}`;
+  document.getElementById('goalTxSub').textContent=isOut
+    ?`Current balance: ${fmtN(g.totalSaved||0)} — how much are you withdrawing?`
+    :`Current balance: ${fmtN(g.totalSaved||0)} — how much are you adding?`;
+  document.getElementById('goalTxBtn').textContent=isOut?'Withdraw':'Add';
+  document.getElementById('goalTxBtn').className='modal-btn '+(isOut?'primary':'green');
+  document.getElementById('goalTxDate').value=new Date().toISOString().split('T')[0];
+  ['goalTxAmount','goalTxNote'].forEach(id=>document.getElementById(id).value='');
+  openModal('goalTxModal');
+}
+
+function confirmGoalTransaction(){
+  const id=document.getElementById('goalTxId').value;
+  const type=document.getElementById('goalTxType').value;
+  const amount=parseFloat(document.getElementById('goalTxAmount').value)||0;
+  if(!amount) return;
+  const note=document.getElementById('goalTxNote').value.trim();
+  const date=document.getElementById('goalTxDate').value;
+  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
+  if(!g.transactions) g.transactions=[];
+  g.transactions.push({type,amount,note,date});
+  // Recalc totalSaved
+  let allContribs=0;
+  S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[id])||0); });
+  const txNet=g.transactions.reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+  g.totalSaved=Math.max(0,(g.beginBalance||0)+allContribs+txNet);
+  save(); renderGoals(); updateSummary(); updateOverview();
+  closeModal('goalTxModal');
+}
+
+function removeGoalTransaction(goalId, txIdx){
+  const g=S.globalGoals.find(x=>x.id===goalId); if(!g||!g.transactions) return;
+  g.transactions.splice(txIdx,1);
+  // Recalc totalSaved
+  let allContribs=0;
+  S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[goalId])||0); });
+  const txNet=g.transactions.reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+  g.totalSaved=Math.max(0,(g.beginBalance||0)+allContribs+txNet);
+  save(); renderGoals(); updateSummary(); updateOverview();
 }
 
 function openGoalEdit(id){
@@ -1398,10 +1510,11 @@ function updateGoalContrib(id,val){
   if(g) g.totalSaved=Math.max(0,(g.beginBalance||0)+(g.totalSaved||0)-g.totalSaved+g.totalSaved+nv-prev);
   // simpler: track contributions separately from beginBalance
   if(g){
-    // recalc: beginBalance + sum of all contribs across all months
+    // recalc: beginBalance + sum of all contribs across all months + transactions
     let allContribs=0;
     S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[id])||0); });
-    g.totalSaved=(g.beginBalance||0)+allContribs;
+    const txNet=(g.transactions||[]).reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+    g.totalSaved=Math.max(0,(g.beginBalance||0)+allContribs+txNet);
   }
   save(); updateSummary(); updateOverview();
   // Update just the progress display without re-rendering inputs
