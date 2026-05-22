@@ -1734,6 +1734,8 @@ function confirmNewMonth(){
   if(toSavings>0){ S.savingsBook.push({amount:toSavings,note:'Rollover from '+prev.name,date:new Date().toISOString().split('T')[0],type:'deposit'}); }
   const nm={name,income:[],variable:[],debtPayments:{},goalContribs:{},carryover,carryoverIsRollover:carryover>0};
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
+  // Also copy variable categories (zeroed actuals) so categories roll forward
+  nm.variable=copy?JSON.parse(JSON.stringify((prev.variable||[]).map(r=>({...r,actual:0})))):[];
   // Roll each goal's totalSaved forward as the new beginBalance
   S.globalGoals.forEach(g=>{
     g.beginBalance=g.totalSaved||0;
@@ -1982,24 +1984,23 @@ function formatDisplayDate(dateStr){
 function getBankById(id){ return (S.banks||[]).find(b=>b.id===id); }
 
 function bankBalance(b){
-  // balance = beginBalance + all income assigned to this bank - all expenses assigned - transfers out + transfers in
-  const m = getM(); // current period context for income/fixed/variable
+  // balance = beginBalance + transactions across ALL months (not just current)
   let bal = parseFloat(b.beginBalance)||0;
-  // Income
-  (m.income||[]).forEach(r=>{ if(r.bankId===b.id) bal+=r.actual||0; });
-  // Fixed (paid only)
-  (m.fixed||[]).forEach(r=>{ if(r.paid && r.bankId===b.id) bal-=(r.actual||r.budgeted||0); });
-  // Variable
-  (m.variable||[]).forEach(r=>{ if(r.bankId===b.id) bal-=r.actual||0; });
-  // Daily expenses
-  (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
-  // Debt payments — paying a debt adds to the bank's balance (restores available credit)
+  S.months.forEach(mo=>{
+    // Income
+    (mo.income||[]).forEach(r=>{ if(r.bankId===b.id) bal+=r.actual||0; });
+    // Fixed (paid only)
+    (mo.fixed||[]).forEach(r=>{ if(r.paid && r.bankId===b.id) bal-=(r.actual||r.budgeted||0); });
+    // Variable
+    (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) bal-=r.actual||0; });
+    // Daily expenses
+    (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
+  });
+  // Debt payments across all months — restores available credit
   S.globalDebts.forEach(d=>{
     if(d.bankId===b.id){
-      // sum payments across all months for this debt
       S.months.forEach(mo=>{
-        const paid=parseFloat((mo.debtPayments||{})[d.id])||0;
-        bal+=paid;
+        bal+=parseFloat((mo.debtPayments||{})[d.id])||0;
       });
     }
   });
