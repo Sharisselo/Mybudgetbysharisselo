@@ -1099,7 +1099,11 @@ function calcPeriodTotals(m){
   const fixedActual=(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
   const varActual=(m.variable||[]).reduce((a,r)=>a+r.actual,0);
   const debtPaid=Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
-  const goalSaved=Object.values(m.goalContribs||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
+  // goalSaved = net of all goal transactions (Add Funds deposits − Use Funds withdrawals)
+  const goalSaved=Math.max(0,S.globalGoals.reduce((a,g)=>{
+    const net=(g.transactions||[]).reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+    return a+net;
+  },0));
   // Actual spend = fixed (paid) + variable only — debt is tracked separately
   const totalSpent=fixedActual+varActual;
   // Saved this period = goal contributions + savings book deposits this period
@@ -1417,7 +1421,7 @@ function renderGoals(){
           <div class="goal-name">${g.name}</div>
           <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
             <span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(173,144,216,0.15);color:var(--lavender2);">Opening: ${fmtN(g.beginBalance||0)}</span>
-            ${tc>0?`<span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(122,184,232,0.15);color:var(--sky2);">+ ${fmtN(tc)} this period</span>`:''}
+
           </div>
         </div>
         <div class="goal-pct">${pct}%</div>
@@ -1433,13 +1437,7 @@ function renderGoals(){
       </div>
       <!-- Transaction log -->
       ${txHtml}
-      <!-- Add to savings / withdraw -->
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-        <div class="debt-month-label">Add to savings this period</div>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-          <input type="number" value="${tc||''}" placeholder="0" class="small-input" style="flex:1;" onchange="updateGoalContrib('${g.id}',this.value)"/>
-        </div>
-      </div>
+
       <div class="debt-actions" style="margin-top:8px;">
         <button class="action-btn edit" style="background:rgba(212,96,122,0.1);color:var(--red);border-color:rgba(212,96,122,0.25);" onclick="openGoalTransaction('${g.id}','withdrawal')">💸 Use Funds</button>
         <button class="action-btn edit" onclick="openGoalTransaction('${g.id}','deposit')">💰 Add Funds</button>
