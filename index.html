@@ -1528,11 +1528,11 @@ function openGoalEdit(id){
 
 
 function recalcGoalTotal(g){
-  // totalSaved = beginBalance + current month contribution + all transaction net
-  const m=getM();
-  const thisContrib=parseFloat((m.goalContribs||{})[g.id])||0;
-  const txNet=(g.transactions||[]).reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-  g.totalSaved=Math.max(0,(g.beginBalance||0)+thisContrib+txNet);
+  // totalSaved = beginBalance + current period transactions only (not rolled over)
+  const txNet=(g.transactions||[])
+    .filter(tx=>!tx.rolledOver)
+    .reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+  g.totalSaved=Math.max(0,(g.beginBalance||0)+txNet);
   return g.totalSaved;
 }
 
@@ -1795,6 +1795,8 @@ function confirmNewMonth(){
     // Tag all existing transactions as 'prev' so they don't count in new period
     (g.transactions||[]).forEach(tx=>{ tx.rolledOver=true; });
     g.totalSaved=g.beginBalance;
+    // beginBalance is now correct — recalc to confirm clean state
+    recalcGoalTotal(g);
   });
   S.months.push(nm); S.currentIdx=S.months.length-1;
   save(); refreshAll(); closeModal('newMonthModal');
@@ -2400,6 +2402,8 @@ function updateBankSelects(){
 
 load();
 document.getElementById('salaryDayInput').value=S.salaryDay||23;
+// Recalc all goal totals on load to fix any stale data
+S.globalGoals.forEach(g=>recalcGoalTotal(g));
 refreshAll();
 </script>
 </body>
