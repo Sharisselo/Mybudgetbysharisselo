@@ -248,6 +248,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .goal-tx-amount.out{color:var(--red);}
 .goal-log-toggle{background:none;border:none;font-size:10px;color:var(--text3);cursor:pointer;padding:4px 0;text-decoration:underline;letter-spacing:0.5px;}
 .goal-log-toggle:hover{color:var(--rose2);}
+
+.bank-card.cc-card{border-color:rgba(212,96,122,0.25);background:#fff;}
+.cc-limit-bar{height:8px;background:rgba(200,170,155,0.15);border-radius:4px;overflow:hidden;margin:8px 0 4px;}
+.cc-limit-fill{height:100%;border-radius:4px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+.cc-available{color:var(--green);}
+.cc-owed{color:var(--red);}
 .remove-btn{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:4px 10px;font-size:10px;color:var(--text3);cursor:pointer;transition:all 0.2s;}
 .remove-btn:hover{border-color:var(--rose2);color:var(--rose2);}
 .footer{text-align:center;padding:18px 18px 50px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
@@ -688,7 +694,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <input type="hidden" id="editBankId"/>
     <div class="field-row"><div class="field-label">Account Name</div><input class="modal-input" id="bankName" placeholder="e.g. MCB Chequing, Maduro Savings"/></div>
     <div class="field-row"><div class="field-label">Account Type</div>
-      <select class="modal-input" id="bankType" style="cursor:pointer;">
+      <select class="modal-input" id="bankType" style="cursor:pointer;" onchange="toggleCcFields()">
         <option value="current">Current</option>
         <option value="savings">Savings</option>
         <option value="credit">Credit Card</option>
@@ -696,7 +702,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <option value="other">Other</option>
       </select>
     </div>
-    <div class="field-row"><div class="field-label">Beginning Balance (XCG)</div><input class="modal-input" id="bankBeginBalance" type="number" placeholder="0"/></div>
+    <!-- Regular account fields -->
+    <div id="regularBalanceField" class="field-row">
+      <div class="field-label">Beginning Balance (XCG)</div>
+      <input class="modal-input" id="bankBeginBalance" type="number" placeholder="0"/>
+    </div>
+    <!-- CC-specific fields (shown only for credit cards) -->
+    <div id="ccFields" style="display:none;">
+      <div class="field-row">
+        <div class="field-label">Credit Limit</div>
+        <div style="display:grid;grid-template-columns:1fr 80px;gap:8px;">
+          <input class="modal-input" id="ccLimit" type="number" placeholder="1500" style="margin-bottom:0;"/>
+          <select class="modal-input" id="ccCurrency" style="cursor:pointer;margin-bottom:0;" onchange="toggleFxRate()">
+            <option value="XCG">XCG</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row" id="fxRateRow" style="display:none;">
+        <div class="field-label">Exchange Rate (1 <span id="fxFromLabel">USD</span> = ? XCG)</div>
+        <input class="modal-input" id="ccFxRate" type="number" placeholder="1.79" step="0.01"/>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Current Balance Owed (<span id="ccOwedCurrLabel">XCG</span>)</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:5px;">How much you currently owe on this card</div>
+        <input class="modal-input" id="ccOwed" type="number" placeholder="0"/>
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('bankModal')">Cancel</button>
       <button class="modal-btn primary" id="bankSaveBtn" onclick="confirmBank()">Add Account</button>
@@ -2150,32 +2183,52 @@ function formatDisplayDate(dateStr){
 function getBankById(id){ return (S.banks||[]).find(b=>b.id===id); }
 
 function bankBalance(b){
-  // balance = beginBalance + transactions across ALL months (not just current)
+  if(b.type==='credit') return ccAvailable(b);
+  // Regular account: balance = beginBalance + all transactions
   let bal = parseFloat(b.beginBalance)||0;
   S.months.forEach(mo=>{
-    // Income
     (mo.income||[]).forEach(r=>{ if(r.bankId===b.id) bal+=r.actual||0; });
-    // Fixed (paid only)
     (mo.fixed||[]).forEach(r=>{ if(r.paid && r.bankId===b.id) bal-=(r.actual||r.budgeted||0); });
-    // Variable
     (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) bal-=r.actual||0; });
-    // Daily expenses
     (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
   });
-  // Debt payments across all months — restores available credit
   S.globalDebts.forEach(d=>{
     if(d.bankId===b.id){
-      S.months.forEach(mo=>{
-        bal+=parseFloat((mo.debtPayments||{})[d.id])||0;
-      });
+      S.months.forEach(mo=>{ bal+=parseFloat((mo.debtPayments||{})[d.id])||0; });
     }
   });
-  // Transfers (global)
   (S.transfers||[]).forEach(t=>{
     if(t.fromId===b.id) bal-=t.amount||0;
     if(t.toId===b.id)   bal+=t.amount||0;
   });
   return bal;
+}
+
+function ccOwedCurrent(b){
+  // Start from initial owed amount, then:
+  // + charges (expenses assigned to CC)
+  // - payments (transfers IN to CC reduce what's owed)
+  let owed = parseFloat(b.ccOwed)||0;
+  S.months.forEach(mo=>{
+    (mo.fixed||[]).forEach(r=>{ if(r.paid && r.bankId===b.id) owed+=(r.actual||r.budgeted||0); });
+    (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) owed+=r.actual||0; });
+    (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) owed+=e.amount||0; });
+  });
+  // Transfers TO the CC reduce what's owed (payments)
+  (S.transfers||[]).forEach(t=>{
+    if(t.toId===b.id)   owed-=t.amount||0;
+    if(t.fromId===b.id) owed+=t.amount||0; // spending from CC increases owed
+  });
+  return Math.max(owed,0);
+}
+
+function ccAvailable(b){
+  // Available = Limit − Owed
+  // Positive = available to spend (green)
+  // Negative = over limit (red)
+  const limit = parseFloat(b.ccLimit)||0;
+  const owed  = ccOwedCurrent(b);
+  return limit - owed;
 }
 
 function bankInOut(b){
@@ -2236,13 +2289,16 @@ function renderBanks(){
   const list=document.getElementById('bank-accounts-list'); if(!list) return;
   list.innerHTML='';
 
-  const grandTotal=S.banks.reduce((a,b)=>a+bankBalance(b),0);
+  // Grand total excludes CC (liability, not asset)
+  const grandTotal=S.banks.filter(b=>b.type!=='credit').reduce((a,b)=>a+bankBalance(b),0);
+  const totalCCOwed=S.banks.filter(b=>b.type==='credit').reduce((a,b)=>a+ccOwedCurrent(b),0);
   const totalCard=document.getElementById('bank-total-card');
   if(totalCard){
     totalCard.innerHTML=S.banks.length?`
       <div style="background:linear-gradient(135deg,#edf9f3,#e8f4fd);border:1px solid rgba(114,199,168,0.4);border-radius:18px;padding:18px;text-align:center;">
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mint2);margin-bottom:6px;">Total Across All Accounts</div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mint2);margin-bottom:6px;">Total Available (excl. CC)</div>
         <div style="font-family:'Playfair Display',serif;font-size:32px;color:${grandTotal>=0?'var(--green)':'var(--red)'};">${(grandTotal<0?'-':'')+fmtN(grandTotal)}</div>
+        ${totalCCOwed>0?`<div style="font-size:11px;color:var(--red);margin-top:6px;">💳 CC owed: ${fmtN(totalCCOwed)}</div>`:''}
       </div>`:'';
   }
 
@@ -2253,25 +2309,64 @@ function renderBanks(){
 
   const typeIcon={current:'🏦',savings:'💰',credit:'💳',cash:'💵',other:'🏧'};
   S.banks.forEach(b=>{
-    const bal=bankBalance(b);
     const{totalIn,totalOut}=bankInOut(b);
-    list.innerHTML+=`<div class="bank-card">
-      <div class="bank-card-header">
-        <div>
-          <div class="bank-name">${typeIcon[b.type]||'🏦'} ${b.name}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:capitalize;">${b.type} · Opening: ${fmtN(b.beginBalance||0)}</div>
+    if(b.type==='credit'){
+      // CC card — show limit, owed, available
+      const owed=ccOwedCurrent(b);
+      const avail=ccAvailable(b);
+      const limit=parseFloat(b.ccLimit)||0;
+      const usedPct=limit>0?Math.min(Math.round(owed/limit*100),100):0;
+      const cur=b.currency&&b.currency!=='XCG'?b.currency:'XCG';
+      const fxRate=b.fxRate||1;
+      const limitDisplay=cur!=='XCG'?`${(limit/fxRate).toLocaleString('en-US',{maximumFractionDigits:0})} ${cur} (${fmtN(limit)})`:`${fmtN(limit)}`;
+      list.innerHTML+=`<div class="bank-card cc-card">
+        <div class="bank-card-header">
+          <div>
+            <div class="bank-name">💳 ${b.name}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px;">Credit Card · Limit: ${limitDisplay}</div>
+          </div>
+          <div>
+            <div style="text-align:right;font-size:10px;color:var(--text2);margin-bottom:2px;">${avail>=0?'Available':'Over limit'}</div>
+            <div class="bank-balance ${avail<0?'negative':''}${avail>=0&&owed===0?' ':''}" style="color:${avail>0?'var(--green)':avail<0?'var(--red)':'var(--text2)'};">${(avail<0?'-':'')+fmtN(Math.abs(avail))}</div>
+          </div>
         </div>
-        <div class="bank-balance ${bal<0?'negative':''}">${(bal<0?'-':'')+fmtN(bal)}</div>
-      </div>
-      <div class="bank-meta">
-        <div class="bank-meta-item">In this period: <span class="in">+${fmtN(totalIn)}</span></div>
-        <div class="bank-meta-item">Out this period: <span class="out">-${fmtN(totalOut)}</span></div>
-      </div>
-      <div class="debt-actions">
-        <button class="action-btn edit" onclick="openEditBank('${b.id}')">✏️ Edit</button>
-        <button class="action-btn danger" onclick="removeBank('${b.id}')">🗑 Delete</button>
-      </div>
-    </div>`;
+        <div class="cc-limit-bar">
+          <div class="cc-limit-fill" style="width:${usedPct}%;background:${usedPct>80?'var(--red)':usedPct>50?'#f0a030':'var(--mint2)'}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">
+          <span style="color:var(--red);">Owed: <strong>${fmtN(owed)}</strong></span>
+          <span style="color:var(--text3);">${usedPct}% used</span>
+          <span style="color:var(--green);">Available: <strong>${fmtN(Math.max(avail,0))}</strong></span>
+        </div>
+        <div class="bank-meta">
+          <div class="bank-meta-item">Charged this period: <span class="out">+${fmtN(totalOut)}</span></div>
+          <div class="bank-meta-item">Paid this period: <span class="in">-${fmtN(totalIn)}</span></div>
+        </div>
+        <div class="debt-actions">
+          <button class="action-btn edit" onclick="openEditBank('${b.id}')">✏️ Edit</button>
+          <button class="action-btn danger" onclick="removeBank('${b.id}')">🗑 Delete</button>
+        </div>
+      </div>`;
+    } else {
+      const bal=bankBalance(b);
+      list.innerHTML+=`<div class="bank-card">
+        <div class="bank-card-header">
+          <div>
+            <div class="bank-name">${typeIcon[b.type]||'🏦'} ${b.name}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:capitalize;">${b.type} · Opening: ${fmtN(b.beginBalance||0)}</div>
+          </div>
+          <div class="bank-balance ${bal<0?'negative':''}">${(bal<0?'-':'')+fmtN(bal)}</div>
+        </div>
+        <div class="bank-meta">
+          <div class="bank-meta-item">In this period: <span class="in">+${fmtN(totalIn)}</span></div>
+          <div class="bank-meta-item">Out this period: <span class="out">-${fmtN(totalOut)}</span></div>
+        </div>
+        <div class="debt-actions">
+          <button class="action-btn edit" onclick="openEditBank('${b.id}')">✏️ Edit</button>
+          <button class="action-btn danger" onclick="removeBank('${b.id}')">🗑 Delete</button>
+        </div>
+      </div>`;
+    }
   });
   renderTransfers();
 }
@@ -2315,8 +2410,34 @@ function openEditBank(id){
   document.getElementById('editBankId').value=id;
   document.getElementById('bankName').value=b.name;
   document.getElementById('bankType').value=b.type;
-  document.getElementById('bankBeginBalance').value=b.beginBalance||0;
+  toggleCcFields();
+  if(b.type==='credit'){
+    const cur=b.currency||'XCG';
+    const fxRate=b.fxRate||1;
+    document.getElementById('ccCurrency').value=cur;
+    document.getElementById('ccLimit').value=fxRate>0?(b.ccLimit||0)/fxRate:'';
+    document.getElementById('ccOwed').value=fxRate>0?(b.ccOwed||0)/fxRate:'';
+    document.getElementById('ccFxRate').value=fxRate!==1?fxRate:'';
+    toggleFxRate();
+  } else {
+    document.getElementById('bankBeginBalance').value=b.beginBalance||0;
+  }
   openModal('bankModal');
+}
+
+function toggleCcFields(){
+  const type=document.getElementById('bankType').value;
+  const isCC=type==='credit';
+  document.getElementById('ccFields').style.display=isCC?'block':'none';
+  document.getElementById('regularBalanceField').style.display=isCC?'none':'block';
+  if(isCC) toggleFxRate();
+}
+function toggleFxRate(){
+  const cur=document.getElementById('ccCurrency').value;
+  const isXCG=cur==='XCG';
+  document.getElementById('fxRateRow').style.display=isXCG?'none':'block';
+  document.getElementById('fxFromLabel').textContent=cur;
+  document.getElementById('ccOwedCurrLabel').textContent=cur;
 }
 
 function confirmBank(){
@@ -2324,13 +2445,26 @@ function confirmBank(){
   const name=document.getElementById('bankName').value.trim();
   if(!name) return;
   const type=document.getElementById('bankType').value;
-  const begin=parseFloat(document.getElementById('bankBeginBalance').value)||0;
   const editId=document.getElementById('editBankId').value;
+  let bankObj;
+  if(type==='credit'){
+    const cur=document.getElementById('ccCurrency').value;
+    const fxRate=cur==='XCG'?1:(parseFloat(document.getElementById('ccFxRate').value)||1);
+    const limitRaw=parseFloat(document.getElementById('ccLimit').value)||0;
+    const owedRaw=parseFloat(document.getElementById('ccOwed').value)||0;
+    const limitXCG=limitRaw*fxRate;
+    const owedXCG=owedRaw*fxRate;
+    bankObj={name,type,currency:cur,fxRate,ccLimit:limitXCG,ccOwed:owedXCG,beginBalance:0};
+  } else {
+    const begin=parseFloat(document.getElementById('bankBeginBalance').value)||0;
+    bankObj={name,type,beginBalance:begin};
+  }
   if(editId){
     const b=getBankById(editId); if(!b) return;
-    b.name=name; b.type=type; b.beginBalance=begin;
+    Object.assign(b, bankObj);
   } else {
-    S.banks.push({id:'b'+Date.now(),name,type,beginBalance:begin});
+    bankObj.id='b'+Date.now();
+    S.banks.push(bankObj);
   }
   save(); renderBanks(); closeModal('bankModal');
   updateBankSelects();
