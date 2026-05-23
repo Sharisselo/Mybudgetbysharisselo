@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="My Budget">
+<meta name="theme-color" content="#fdf6f0">
 <title>My Budget</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -493,6 +497,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="settings-label">Manually set the opening balance per goal for the current period. Use this if your opening balance doesn't match last month's ending balance.</span>
         <button onclick="openGoalBalanceFixer()" style="background:linear-gradient(135deg,var(--sky),var(--sky2));border:none;border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">🎯 Fix Opening Balances</button>
       </div>
+    </div>
+    <div class="settings-card">
+      <div class="settings-title">Backup &amp; Restore</div>
+      <div class="settings-row">
+        <span class="settings-label">Export all data to a file</span>
+        <button onclick="exportData()" style="background:linear-gradient(135deg,var(--mint),var(--mint2));border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">📤 Export</button>
+      </div>
+      <div class="settings-row">
+        <span class="settings-label">Import data from a file</span>
+        <label style="background:linear-gradient(135deg,var(--sky),var(--sky2));border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">
+          📥 Import
+          <input type="file" accept=".json" onchange="importData(this)" style="display:none;"/>
+        </label>
+      </div>
+      <div style="font-size:10px;color:var(--text3);padding:6px 0 2px;line-height:1.6;">Export before updating the app or deleting the shortcut. Import to restore your data on any device.</div>
     </div>
     <div class="settings-card">
       <div class="settings-title">Data</div>
@@ -1910,6 +1929,52 @@ function showTab(name,btn){
   if(name==='savingsbook') renderSavingsBook();
 }
 
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
+function exportData(){
+  const data = JSON.stringify(S, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `my-budget-backup-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(input){
+  const file = input.files[0]; if(!file) return;
+  if(!confirm('This will replace ALL your current data with the backup file. Are you sure?')) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const imported = JSON.parse(e.target.result);
+      // Validate it looks like our data
+      if(!imported.months || !Array.isArray(imported.months)){
+        alert('Invalid backup file. Please use a file exported from My Budget.');
+        return;
+      }
+      S = imported;
+      if(!S.savingsBook) S.savingsBook=[];
+      if(!S.banks) S.banks=[];
+      if(!S.transfers) S.transfers=[];
+      save();
+      S.globalGoals.forEach(g=>recalcGoalTotal(g));
+      save();
+      refreshAll();
+      alert('✅ Data restored successfully!');
+    } catch(err){
+      alert('Could not read the backup file. Make sure it\'s a valid My Budget export.');
+    }
+  };
+  reader.readAsText(file);
+  // Reset input so same file can be imported again if needed
+  input.value='';
+}
+
 function resetAll(){
   if(confirm('Reset all data? This cannot be undone.')){ localStorage.removeItem(KEY); init(); refreshAll(); }
 }
@@ -2448,6 +2513,28 @@ function updateBankSelects(){
 
 load();
 document.getElementById('salaryDayInput').value=S.salaryDay||23;
+
+// Auto-backup reminder every 7 days
+(function checkBackupReminder(){
+  const lastReminder = parseInt(localStorage.getItem('myBudgetLastBackup')||'0');
+  const daysSince = (Date.now()-lastReminder)/(1000*60*60*24);
+  if(daysSince > 7){
+    setTimeout(()=>{
+      const banner = document.createElement('div');
+      banner.id='backup-banner';
+      banner.style.cssText='position:fixed;bottom:70px;left:12px;right:12px;background:linear-gradient(135deg,#edf9f3,#e8f4fd);border:1px solid rgba(114,199,168,0.5);border-radius:14px;padding:12px 14px;z-index:150;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 18px rgba(114,199,168,0.2);';
+      banner.innerHTML=`
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:600;color:var(--green);">📤 Time to back up!</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:2px;">Export your data to keep it safe</div>
+        </div>
+        <button onclick="exportData();localStorage.setItem('myBudgetLastBackup',Date.now());this.closest('#backup-banner').remove();" style="background:linear-gradient(135deg,var(--mint),var(--mint2));border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;">Export Now</button>
+        <button onclick="localStorage.setItem('myBudgetLastBackup',Date.now());this.closest('#backup-banner').remove();" style="background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:0 2px;">×</button>
+      `;
+      document.body.appendChild(banner);
+    }, 2000);
+  }
+})();
 
 // ── ONE-TIME MIGRATION: tag past-month transactions as rolledOver ─────────────
 // If we're not in the first month, all existing transactions that have no
