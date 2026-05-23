@@ -1471,11 +1471,7 @@ function confirmGoalTransaction(){
   const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
   if(!g.transactions) g.transactions=[];
   g.transactions.push({type,amount,note,date});
-  // Recalc totalSaved
-  let allContribs=0;
-  S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[id])||0); });
-  const txNet=g.transactions.reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-  g.totalSaved=Math.max(0,(g.beginBalance||0)+allContribs+txNet);
+  recalcGoalTotal(g);
   save(); renderGoals(); updateSummary(); updateOverview();
   closeModal('goalTxModal');
 }
@@ -1483,11 +1479,7 @@ function confirmGoalTransaction(){
 function removeGoalTransaction(goalId, txIdx){
   const g=S.globalGoals.find(x=>x.id===goalId); if(!g||!g.transactions) return;
   g.transactions.splice(txIdx,1);
-  // Recalc totalSaved
-  let allContribs=0;
-  S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[goalId])||0); });
-  const txNet=g.transactions.reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-  g.totalSaved=Math.max(0,(g.beginBalance||0)+allContribs+txNet);
+  recalcGoalTotal(g);
   save(); renderGoals(); updateSummary(); updateOverview();
 }
 
@@ -1503,22 +1495,22 @@ function openGoalEdit(id){
   openModal('goalModal');
 }
 
+
+function recalcGoalTotal(g){
+  // totalSaved = beginBalance + current month contribution + all transaction net
+  const m=getM();
+  const thisContrib=parseFloat((m.goalContribs||{})[g.id])||0;
+  const txNet=(g.transactions||[]).reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+  g.totalSaved=Math.max(0,(g.beginBalance||0)+thisContrib+txNet);
+  return g.totalSaved;
+}
+
 function updateGoalContrib(id,val){
   const m=getM(); if(!m.goalContribs) m.goalContribs={};
-  const prev=parseFloat(m.goalContribs[id])||0, nv=parseFloat(val)||0;
-  m.goalContribs[id]=nv;
+  m.goalContribs[id]=parseFloat(val)||0;
   const g=S.globalGoals.find(x=>x.id===id);
-  if(g) g.totalSaved=Math.max(0,(g.beginBalance||0)+(g.totalSaved||0)-g.totalSaved+g.totalSaved+nv-prev);
-  // simpler: track contributions separately from beginBalance
-  if(g){
-    // recalc: beginBalance + sum of all contribs across all months + transactions
-    let allContribs=0;
-    S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[id])||0); });
-    const txNet=(g.transactions||[]).reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-    g.totalSaved=Math.max(0,(g.beginBalance||0)+allContribs+txNet);
-  }
+  if(g) recalcGoalTotal(g);
   save(); updateSummary(); updateOverview();
-  // Update just the progress display without re-rendering inputs
   renderGoalProgress(id);
 }
 
@@ -1737,9 +1729,11 @@ function confirmNewMonth(){
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
   // Also copy variable categories (zeroed actuals) so categories roll forward
   nm.variable=copy?JSON.parse(JSON.stringify((prev.variable||[]).map(r=>({...r,actual:0})))):[];
-  // Roll each goal's totalSaved forward as the new beginBalance
+  // Roll totalSaved → beginBalance for new period. Clear transactions (already baked in).
   S.globalGoals.forEach(g=>{
     g.beginBalance=g.totalSaved||0;
+    g.transactions=[];  // transactions are now baked into beginBalance
+    g.totalSaved=g.beginBalance; // reset — no contribs yet this period
   });
   S.months.push(nm); S.currentIdx=S.months.length-1;
   save(); refreshAll(); closeModal('newMonthModal');
@@ -1765,12 +1759,8 @@ function confirmGoal(){
     const g=S.globalGoals.find(x=>x.id===_editingGoalId); if(!g) return;
     g.name=name;
     g.target=target||g.target;
-    const oldBegin=g.beginBalance||0;
     g.beginBalance=savedInput;
-    // recalc totalSaved: beginBalance + all monthly contributions
-    let allContribs=0;
-    S.months.forEach(mo=>{ allContribs+=(parseFloat((mo.goalContribs||{})[g.id])||0); });
-    g.totalSaved=savedInput+allContribs;
+    recalcGoalTotal(g);
     _editingGoalId=null;
   } else {
     // new goal
