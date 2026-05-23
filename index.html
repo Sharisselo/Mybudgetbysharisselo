@@ -1349,12 +1349,12 @@ function calcPeriodTotals(m){
 function updateSummary(){
   const t=calcPeriodTotals(getM());
   const totalIncome=t.incActual+t.carryover;
-  // Actual spend = fixed paid + variable actual
-  const actualSpend=t.fixedActual+t.varActual;
+  // Actual spend = totalSpent (already has reimbursements deducted)
+  const actualSpend=t.totalSpent;
   // Saved = goal contributions logged this period only
   // (Savings book is physical cash tracked separately — not deducted from budget)
   const savedThisPeriod=t.goalSaved;
-  // Remaining = Income − Spent − Saved (savings is an allocation, not an expense)
+  // Remaining = Income − Spent − Saved (actualSpend already has reimbursements deducted)
   const remaining=totalIncome-actualSpend-savedThisPeriod;
 
   // Budgeted = total budgeted amounts from fixed + variable tabs
@@ -1448,6 +1448,15 @@ function updateBvaTable(){
     html+=`<div class="bva-ov-row rollover-row"><span style="color:var(--green);font-size:10px;">↩ Carryover</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val"><span class="diff-badge diff-under">+</span></span></div>`;
   }
 
+  // Reimbursements row — if any received
+  if(reimbReceived>0){
+    html+=`<div class="bva-ov-row" style="background:rgba(74,158,122,0.04);">
+      <span style="color:var(--green);font-size:10px;">💰 Reimbursements received</span>
+      <span class="bva-ov-val">—</span>
+      <span class="bva-ov-val" style="color:var(--green);">−${fmtN(reimbReceived)}</span>
+      <span class="bva-ov-val"><span class="diff-badge diff-under">−${fmtN(reimbReceived)}</span></span>
+    </div>`;
+  }
   // Savings row — clearly separate from expenses
   if(savedThisPeriod>0){
     html+=`<div class="bva-ov-row" style="background:rgba(122,184,232,0.06);">
