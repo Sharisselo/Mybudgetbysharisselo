@@ -488,6 +488,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.6;">Your budget period runs from the <span id="salaryDayPreview" style="color:var(--rose2);font-weight:600;">23rd</span> of each month.</div>
     </div>
     <div class="settings-card">
+      <div class="settings-title">Goal Balances</div>
+      <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <span class="settings-label">Manually set the opening balance per goal for the current period. Use this if your opening balance doesn't match last month's ending balance.</span>
+        <button onclick="openGoalBalanceFixer()" style="background:linear-gradient(135deg,var(--sky),var(--sky2));border:none;border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">🎯 Fix Opening Balances</button>
+      </div>
+    </div>
+    <div class="settings-card">
       <div class="settings-title">Data</div>
       <div class="settings-row">
         <span class="settings-label">Reset all data</span>
@@ -806,6 +813,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-btns">
       <button class="modal-btn secondary" onclick="closeModal('historySavedModal')">Cancel</button>
       <button class="modal-btn sky" onclick="confirmHistorySavedEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Balance Fixer Modal -->
+<div class="modal-overlay" id="goalBalanceFixerModal">
+  <div class="modal">
+    <div class="modal-title">Fix Opening Balances 🎯</div>
+    <div class="modal-sub">Set the correct opening balance for each goal. This should be the ending balance from last month.</div>
+    <div id="goalBalanceFixerList"></div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="modal-btn secondary" onclick="closeModal('goalBalanceFixerModal')">Cancel</button>
+      <button class="modal-btn sky" onclick="confirmGoalBalanceFixer()">Save All</button>
     </div>
   </div>
 </div>
@@ -1512,6 +1532,32 @@ function removeGoalTransaction(goalId, txIdx){
   g.transactions.splice(txIdx,1);
   recalcGoalTotal(g);
   save(); renderGoals(); updateSummary(); updateOverview();
+}
+
+
+function openGoalBalanceFixer(){
+  const list = document.getElementById('goalBalanceFixerList');
+  list.innerHTML = '';
+  S.globalGoals.forEach(g => {
+    list.innerHTML += `<div class="field-row">
+      <div class="field-label">${g.name}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:5px;">Current opening: ${fmtN(g.beginBalance||0)} — Total saved: ${fmtN(g.totalSaved||0)}</div>
+      <input class="modal-input" type="number" id="fix_${g.id}" placeholder="Enter correct opening balance" value="${g.beginBalance||0}" style="margin-bottom:0;"/>
+    </div>`;
+  });
+  openModal('goalBalanceFixerModal');
+}
+
+function confirmGoalBalanceFixer(){
+  S.globalGoals.forEach(g => {
+    const inp = document.getElementById('fix_'+g.id);
+    if(inp){
+      g.beginBalance = parseFloat(inp.value)||0;
+      recalcGoalTotal(g);
+    }
+  });
+  save(); renderGoals(); updateSummary(); updateOverview();
+  closeModal('goalBalanceFixerModal');
 }
 
 function openGoalEdit(id){
