@@ -1099,9 +1099,11 @@ function calcPeriodTotals(m){
   const fixedActual=(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
   const varActual=(m.variable||[]).reduce((a,r)=>a+r.actual,0);
   const debtPaid=Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
-  // goalSaved = net of all goal transactions (Add Funds deposits − Use Funds withdrawals)
+  // goalSaved = net of current-period transactions only (not rolled over ones)
   const goalSaved=Math.max(0,S.globalGoals.reduce((a,g)=>{
-    const net=(g.transactions||[]).reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+    const net=(g.transactions||[])
+      .filter(tx=>!tx.rolledOver)
+      .reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
     return a+net;
   },0));
   // Actual spend = fixed (paid) + variable only — debt is tracked separately
@@ -1404,7 +1406,7 @@ function renderGoals(){
         txHtml+=`<div class="goal-tx-row">
           <div class="goal-tx-dot" style="background:${isOut?'var(--rose2)':'var(--mint2)'}"></div>
           <div class="goal-tx-info">
-            <div class="goal-tx-note">${tx.note||( isOut?'Withdrawal':'Deposit')}</div>
+            <div class="goal-tx-note">${tx.note||( isOut?'Withdrawal':'Deposit')}${tx.rolledOver?' <span style="font-size:9px;color:var(--text3);">(prev)</span>':''}</div>
             <div class="goal-tx-date">${tx.date||'—'}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -1736,11 +1738,12 @@ function confirmNewMonth(){
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
   // Also copy variable categories (zeroed actuals) so categories roll forward
   nm.variable=copy?JSON.parse(JSON.stringify((prev.variable||[]).map(r=>({...r,actual:0})))):[];
-  // Roll totalSaved → beginBalance for new period. Clear transactions (already baked in).
+  // Roll totalSaved → beginBalance for new period. Keep transactions as permanent log.
   S.globalGoals.forEach(g=>{
     g.beginBalance=g.totalSaved||0;
-    g.transactions=[];  // transactions are now baked into beginBalance
-    g.totalSaved=g.beginBalance; // reset — no contribs yet this period
+    // Tag all existing transactions as 'prev' so they don't count in new period
+    (g.transactions||[]).forEach(tx=>{ tx.rolledOver=true; });
+    g.totalSaved=g.beginBalance;
   });
   S.months.push(nm); S.currentIdx=S.months.length-1;
   save(); refreshAll(); closeModal('newMonthModal');
