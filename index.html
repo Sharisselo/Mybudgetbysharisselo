@@ -1122,9 +1122,8 @@ function updateSummary(){
   // Saved = goal contributions logged this period only
   // (Savings book is physical cash tracked separately — not deducted from budget)
   const savedThisPeriod=t.goalSaved;
-  // Remaining = Income − Fixed Actual − Variable Actual only
-  // Debt, savings and savings book are separate/informational
-  const remaining=totalIncome-actualSpend;
+  // Remaining = Income − Spent − Saved (savings is an allocation, not an expense)
+  const remaining=totalIncome-actualSpend-savedThisPeriod;
 
   document.getElementById('sumIncome').textContent=fmtN(totalIncome);
   document.getElementById('sumExpenses').textContent=fmtN(actualSpend);
@@ -1133,14 +1132,14 @@ function updateSummary(){
 
   document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
   document.querySelector('.sum-card.savings .sum-sub').textContent='Goal contributions this period';
-  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − fixed − variable';
+  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spent − saved';
 
   // Big balance on overview
   const bb=document.getElementById('bigBalance');
   bb.textContent=(remaining<0?'-':'')+fmtN(remaining);
   bb.className='balance-amount '+(remaining>=0?'positive':'negative');
   document.getElementById('bigBalanceSub').textContent=remaining>=0
-    ?`You have ${fmtN(remaining)} left this period`
+    ?`After spending ${fmtN(actualSpend)} and saving ${fmtN(savedThisPeriod)}`
     :`Over budget by ${fmtN(Math.abs(remaining))}`;
 }
 
@@ -1206,8 +1205,18 @@ function updateBvaTable(){
     html+=`<div class="bva-ov-row rollover-row"><span style="color:var(--green);font-size:10px;">↩ Carryover</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val" style="color:var(--green)">${fmtN(t.carryover)}</span><span class="bva-ov-val"><span class="diff-badge diff-under">+</span></span></div>`;
   }
 
-  // Net remaining row — actual income minus all actual spend and saved
-  const trueNet=incActual+t.carryover-t.fixedActual-t.varActual;
+  // Savings row — clearly separate from expenses
+  if(savedThisPeriod>0){
+    html+=`<div class="bva-ov-row" style="background:rgba(122,184,232,0.06);">
+      <span style="color:var(--sky2);">🎯 Savings (goals)</span>
+      <span class="bva-ov-val" style="color:var(--text3);">—</span>
+      <span class="bva-ov-val" style="color:var(--sky2);">${fmtN(savedThisPeriod)}</span>
+      <span class="bva-ov-val"><span class="diff-badge" style="background:rgba(122,184,232,0.15);color:var(--sky2);">allocated</span></span>
+    </div>`;
+  }
+
+  // Net remaining = income − spent − saved (savings is an allocation not an expense)
+  const trueNet=incActual+t.carryover-t.fixedActual-t.varActual-savedThisPeriod;
   html+=`<div class="bva-ov-row total-row">
     <span>Net Remaining</span>
     <span class="bva-ov-val">${fmtN(netBudget)}</span>
