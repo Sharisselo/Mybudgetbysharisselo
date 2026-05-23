@@ -792,6 +792,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- History Saved Edit Modal -->
+<div class="modal-overlay" id="historySavedModal">
+  <div class="modal">
+    <div class="modal-title">Adjust Saved Amount 🎯</div>
+    <div class="modal-sub" id="historySavedSub">Manually set the saved amount for this period</div>
+    <input type="hidden" id="historySavedIdx"/>
+    <div class="field-row">
+      <div class="field-label">Amount Saved (XCG)</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Enter the total amount you saved during this period across all goals</div>
+      <input class="modal-input" id="historySavedAmount" type="number" placeholder="0"/>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('historySavedModal')">Cancel</button>
+      <button class="modal-btn sky" onclick="confirmHistorySavedEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -1099,13 +1117,15 @@ function calcPeriodTotals(m){
   const fixedActual=(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
   const varActual=(m.variable||[]).reduce((a,r)=>a+r.actual,0);
   const debtPaid=Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
-  // goalSaved = net of current-period transactions only (not rolled over ones)
-  const goalSaved=Math.max(0,S.globalGoals.reduce((a,g)=>{
-    const net=(g.transactions||[])
-      .filter(tx=>!tx.rolledOver)
-      .reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-    return a+net;
-  },0));
+  // goalSaved: use savedSnapshot if available (past months), else compute from transactions
+  const goalSaved = m.savedSnapshot !== undefined
+    ? m.savedSnapshot
+    : Math.max(0,S.globalGoals.reduce((a,g)=>{
+        const net=(g.transactions||[])
+          .filter(tx=>!tx.rolledOver)
+          .reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+        return a+net;
+      },0));
   // Actual spend = fixed (paid) + variable only — debt is tracked separately
   const totalSpent=fixedActual+varActual;
   // Saved this period = goal contributions + savings book deposits this period
@@ -1651,6 +1671,23 @@ function confirmDeposit(){
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────────────
+
+function openHistorySavedEdit(monthIdx, monthName){
+  document.getElementById('historySavedIdx').value=monthIdx;
+  document.getElementById('historySavedSub').textContent=`Set saved amount for: ${monthName}`;
+  const m=S.months[monthIdx];
+  document.getElementById('historySavedAmount').value=m.savedSnapshot||0;
+  openModal('historySavedModal');
+}
+
+function confirmHistorySavedEdit(){
+  const idx=parseInt(document.getElementById('historySavedIdx').value);
+  const amount=parseFloat(document.getElementById('historySavedAmount').value)||0;
+  if(!S.months[idx]) return;
+  S.months[idx].savedSnapshot=amount;
+  save(); renderHistory(); closeModal('historySavedModal');
+}
+
 function renderHistory(){
   const list=document.getElementById('history-list'); list.innerHTML='';
   [...S.months].reverse().forEach((m,ri)=>{
@@ -1666,7 +1703,13 @@ function renderHistory(){
         <div class="history-row"><span class="history-row-label">Fixed (paid)</span><span class="history-row-val">${fmtN(t.fixedActual)}</span></div>
         <div class="history-row"><span class="history-row-label">Variable (actual)</span><span class="history-row-val">${fmtN(t.varActual)}</span></div>
         <div class="history-row"><span class="history-row-label">Debt payments</span><span class="history-row-val">${fmtN(t.debtPaid)}</span></div>
-        <div class="history-row"><span class="history-row-label">Saved</span><span class="history-row-val" style="color:var(--sky2)">${fmtN(t.goalSaved)}</span></div>
+        <div class="history-row" style="align-items:center;">
+          <span class="history-row-label">Saved</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="history-row-val" style="color:var(--sky2)">${fmtN(t.goalSaved)}</span>
+            <button onclick="openHistorySavedEdit(${i},'${m.name}')" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:0 2px;" title="Manually adjust saved amount">✏️</button>
+          </div>
+        </div>
         <div class="history-row"><span class="history-row-label">Net balance</span><span class="history-row-val" style="color:${t.balance>=0?'var(--green)':'var(--red)'}">${fmtN(t.balance)}</span></div>
       </div>
     </div>`;
@@ -1738,6 +1781,12 @@ function confirmNewMonth(){
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
   // Also copy variable categories (zeroed actuals) so categories roll forward
   nm.variable=copy?JSON.parse(JSON.stringify((prev.variable||[]).map(r=>({...r,actual:0})))):[];
+  // Snapshot current period's goalSaved into the month record before rolling over
+  const currentGoalSaved=Math.max(0,S.globalGoals.reduce((a,g)=>{
+    const net=(g.transactions||[]).filter(tx=>!tx.rolledOver).reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
+    return a+net;
+  },0));
+  prev.savedSnapshot=currentGoalSaved;
   // Roll totalSaved → beginBalance for new period. Keep transactions as permanent log.
   S.globalGoals.forEach(g=>{
     g.beginBalance=g.totalSaved||0;
