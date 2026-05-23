@@ -318,6 +318,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="section">
     <div class="section-title">Variable Expenses</div>
     <div class="section-sub">Set a budget per category — log daily spend and it accumulates</div>
+    <div id="variable-restore-banner"></div>
     <div class="card">
       <div class="card-header">
         <span class="card-title">Categories</span>
@@ -504,9 +505,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-title">New Period 🌸</div>
     <div class="modal-sub">Previous period is saved to history — you can still go back and edit it anytime.</div>
     <div class="field-row"><div class="field-label">Period Name</div><input class="modal-input" id="newMonthName" placeholder="e.g. Apr 23 – May 22"/></div>
-    <div class="field-row"><div class="field-label">Copy fixed expenses from current?</div>
+    <div class="field-row"><div class="field-label">Copy expenses from previous period?</div>
       <select class="modal-input" id="copyFixed" style="cursor:pointer;">
-        <option value="yes">Yes — copy fixed expenses</option>
+        <option value="yes">Yes — copy fixed &amp; variable categories</option>
         <option value="no">No — start blank</option>
       </select>
     </div>
@@ -1804,6 +1805,7 @@ function showTab(name,btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active'); btn.classList.add('active');
   if(name==='overview')    updateOverview();
+  if(name==='variable')    renderVariableRestoreBanner();
   if(name==='banks')       renderBanks();
   if(name==='history')     renderHistory();
   if(name==='savingsbook') renderSavingsBook();
@@ -1833,7 +1835,7 @@ const _origSyncBva=null;
 
 function refreshAll(){
   updatePeriodDisplay(); renderAllRows(); renderDebts(); renderGoals();
-  renderSavingsBook(); updateSummary(); updateOverview(); renderHistory();
+  renderSavingsBook(); updateSummary(); updateOverview(); renderHistory(); renderVariableRestoreBanner();
 }
 
 // ── DAILY EXPENSES ────────────────────────────────────────────────────────────
@@ -2033,6 +2035,35 @@ function bankInOut(b){
     if(t.toId===b.id)   totalIn+=t.amount||0;
   });
   return{totalIn,totalOut};
+}
+
+
+function renderVariableRestoreBanner(){
+  const banner=document.getElementById('variable-restore-banner');
+  if(!banner) return;
+  // Show banner only if current month has no variable categories but a previous month does
+  const m=getM();
+  const hasCategories=(m.variable||[]).some(r=>r.name);
+  const prevIdx=S.currentIdx-1;
+  const prevHasCategories=prevIdx>=0 && (S.months[prevIdx].variable||[]).some(r=>r.name);
+  if(!hasCategories && prevHasCategories){
+    banner.innerHTML=`<div style="background:rgba(122,184,232,0.1);border:1px solid rgba(122,184,232,0.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <span style="font-size:11px;color:var(--sky2);">📋 No categories yet — copy from previous month?</span>
+      <button onclick="restoreVariableCategories()" style="background:linear-gradient(135deg,var(--sky),var(--sky2));border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;border-radius:9px;cursor:pointer;white-space:nowrap;">Copy Categories</button>
+    </div>`;
+  } else {
+    banner.innerHTML='';
+  }
+}
+
+function restoreVariableCategories(){
+  const m=getM();
+  const prevIdx=S.currentIdx-1;
+  if(prevIdx<0) return;
+  const prev=S.months[prevIdx];
+  // Copy variable categories from previous month, zero out actuals
+  m.variable=JSON.parse(JSON.stringify((prev.variable||[]).map(r=>({...r,actual:0}))));
+  save(); renderAllRows(); renderVariableRestoreBanner();
 }
 
 function renderBanks(){
