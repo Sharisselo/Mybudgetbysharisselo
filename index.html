@@ -35,18 +35,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .month-btn:hover{border-color:var(--rose2);color:var(--rose2);}
 .current-month{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);font-weight:500;letter-spacing:1px;}
 .new-month-btn{margin-left:auto;background:linear-gradient(135deg,var(--rose),var(--rose2));border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;border-radius:18px;cursor:pointer;transition:all 0.2s;box-shadow:0 3px 10px rgba(242,168,188,0.4);}
-.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px;}
 .sum-card{border-radius:16px;padding:14px;border:1px solid transparent;}
 .sum-card.income{background:#edf9f3;border-color:rgba(168,223,200,0.5);}
 .sum-card.expenses{background:#fef0f3;border-color:rgba(242,168,188,0.5);}
 .sum-card.balance{background:#fef8ee;border-color:rgba(247,228,160,0.6);}
 .sum-card.savings{background:#f0f4fe;border-color:rgba(168,212,240,0.5);}
+.sum-card.budgeted{background:#fdf4fe;border-color:rgba(200,180,232,0.5);}
 .sum-label{font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
 .sum-amount{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;}
 .sum-card.income .sum-amount{color:var(--green);}
 .sum-card.expenses .sum-amount{color:var(--red);}
 .sum-card.balance .sum-amount{color:var(--amber);}
 .sum-card.savings .sum-amount{color:var(--sky2);}
+.sum-card.budgeted .sum-amount{color:var(--lavender2);}
 .sum-sub{font-size:10px;color:var(--text3);margin-top:3px;}
 .tab-nav{display:flex;background:#fff;border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:100;overflow-x:auto;scrollbar-width:none;box-shadow:0 2px 10px rgba(200,170,155,0.1);}
 .tab-nav::-webkit-scrollbar{display:none;}
@@ -278,8 +280,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="summary-grid">
   <div class="sum-card income"><div class="sum-label">Income</div><div class="sum-amount" id="sumIncome">XCG 0</div><div class="sum-sub">This period</div></div>
+  <div class="sum-card budgeted"><div class="sum-label">Budgeted</div><div class="sum-amount" id="sumBudgeted">XCG 0</div><div class="sum-sub">Fixed + variable</div></div>
   <div class="sum-card expenses"><div class="sum-label">Actual Spent</div><div class="sum-amount" id="sumExpenses">XCG 0</div><div class="sum-sub">Fixed paid + variable</div></div>
-  <div class="sum-card balance"><div class="sum-label">Remaining</div><div class="sum-amount" id="sumBalance">XCG 0</div><div class="sum-sub">After all spending</div></div>
+  <div class="sum-card balance"><div class="sum-label">Remaining</div><div class="sum-amount" id="sumBalance">XCG 0</div><div class="sum-sub">Income − spent − saved</div></div>
   <div class="sum-card savings"><div class="sum-label">Saved</div><div class="sum-amount" id="sumSaved">XCG 0</div><div class="sum-sub">This period</div></div>
 </div>
 
@@ -1223,7 +1226,14 @@ function updateSummary(){
   // Remaining = Income − Spent − Saved (savings is an allocation, not an expense)
   const remaining=totalIncome-actualSpend-savedThisPeriod;
 
+  // Budgeted = total budgeted amounts from fixed + variable tabs
+  const m=getM();
+  const fixedBudgeted=(m.fixed||[]).reduce((a,r)=>a+r.budgeted,0);
+  const varBudgeted=(m.variable||[]).reduce((a,r)=>a+r.budgeted,0);
+  const totalBudgeted=fixedBudgeted+varBudgeted;
+
   document.getElementById('sumIncome').textContent=fmtN(totalIncome);
+  document.getElementById('sumBudgeted').textContent=fmtN(totalBudgeted);
   document.getElementById('sumExpenses').textContent=fmtN(actualSpend);
   document.getElementById('sumBalance').textContent=(remaining<0?'-':'')+fmtN(remaining);
   document.getElementById('sumSaved').textContent=fmtN(savedThisPeriod);
