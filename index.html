@@ -42,6 +42,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sum-card.balance{background:#fef8ee;border-color:rgba(247,228,160,0.6);}
 .sum-card.savings{background:#f0f4fe;border-color:rgba(168,212,240,0.5);}
 .sum-card.budgeted{background:#fdf4fe;border-color:rgba(200,180,232,0.5);}
+.sum-card.joanne{background:#fff8ee;border-color:rgba(248,180,100,0.5);}
+.sum-card.joanne .sum-amount{color:var(--amber);}
 .sum-label{font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
 .sum-amount{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;}
 .sum-card.income .sum-amount{color:var(--green);}
@@ -284,6 +286,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="sum-card expenses"><div class="sum-label">Actual Spent</div><div class="sum-amount" id="sumExpenses">XCG 0</div><div class="sum-sub">Fixed paid + variable</div></div>
   <div class="sum-card balance"><div class="sum-label">Remaining</div><div class="sum-amount" id="sumBalance">XCG 0</div><div class="sum-sub">Income − spent − saved</div></div>
   <div class="sum-card savings"><div class="sum-label">Saved</div><div class="sum-amount" id="sumSaved">XCG 0</div><div class="sum-sub">This period</div></div>
+  <div class="sum-card joanne"><div class="sum-label">Joanne Income</div><div class="sum-amount" id="sumJoanneIncome">XCG 0</div><div class="sum-sub">This period</div></div>
 </div>
 
 <div class="tab-nav">
@@ -296,6 +299,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <button class="tab-btn" onclick="showTab('overview',this)"><span class="tab-icon">📊</span>Overview</button>
   <button class="tab-btn" onclick="showTab('history',this)"><span class="tab-icon">📅</span>History</button>
   <button class="tab-btn" onclick="showTab('banks',this)"><span class="tab-icon">🏦</span>Banks</button>
+  <button class="tab-btn" onclick="showTab('joanne',this)"><span class="tab-icon">👜</span>Joanne</button>
   <button class="tab-btn" onclick="showTab('settings',this)"><span class="tab-icon">⚙️</span>Settings</button>
 </div>
 
@@ -473,6 +477,54 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div id="transfer-list"><div class="empty-state" style="padding:20px 18px;">No transfers yet<br>Tap + to log one</div></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- JOANNE -->
+<div id="tab-joanne" class="tab-content">
+  <div class="section">
+
+    <!-- Joanne summary banner -->
+    <div style="background:linear-gradient(135deg,#fff8ee,#fef0dc);border:1px solid rgba(248,180,100,0.4);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px rgba(248,180,100,0.12);">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">👜 Joanne — This Period</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--green);" id="joanneNetIncome">XCG 0</div>
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-top:3px;">Income</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--red);" id="joanneNetExpenses">XCG 0</div>
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-top:3px;">Expenses</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:15px;font-weight:500;" id="joanneNetProfit">XCG 0</div>
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-top:3px;">Net Profit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Income section -->
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:3px;color:var(--text);">Income</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Revenue received for Joanne this period</div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Income Entries</span>
+        <button class="add-btn" onclick="openJoanneEntryModal('income')">+</button>
+      </div>
+      <div id="joanne-income-list"><div class="empty-state" style="padding:20px;">No income logged yet<br>Tap + to add</div></div>
+    </div>
+
+    <!-- Expenses section -->
+    <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:3px;margin-top:8px;color:var(--text);">Expenses</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Business costs for Joanne this period</div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Expense Entries</span>
+        <button class="add-btn" onclick="openJoanneEntryModal('expense')">+</button>
+      </div>
+      <div id="joanne-expense-list"><div class="empty-state" style="padding:20px;">No expenses logged yet<br>Tap + to add</div></div>
+    </div>
+
   </div>
 </div>
 
@@ -885,6 +937,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Joanne Entry Modal -->
+<div class="modal-overlay" id="joanneEntryModal">
+  <div class="modal">
+    <div class="modal-title" id="joanneEntryTitle">Log Income 👜</div>
+    <div class="modal-sub" id="joanneEntrySubTitle">Add a Joanne income entry</div>
+    <input type="hidden" id="joanneEntryType"/>
+    <input type="hidden" id="joanneEntryEditIdx"/>
+    <div class="field-row"><div class="field-label">Description</div>
+      <input class="modal-input" id="joanneEntryDesc" placeholder="e.g. Client payment, Product sale"/>
+    </div>
+    <div class="field-row"><div class="field-label">Amount (XCG)</div>
+      <input class="modal-input" id="joanneEntryAmount" type="number" placeholder="0"/>
+    </div>
+    <div class="field-row"><div class="field-label">Date</div>
+      <input class="modal-input" id="joanneEntryDate" type="date"/>
+    </div>
+    <div class="field-row"><div class="field-label">Bank Account (optional)</div>
+      <select class="modal-input" id="joanneEntryBank" style="cursor:pointer;"><option value="">— none —</option></select>
+    </div>
+    <div class="field-row"><div class="field-label">Note (optional)</div>
+      <input class="modal-input" id="joanneEntryNote" placeholder="e.g. Invoice #123"/>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('joanneEntryModal')">Cancel</button>
+      <button class="modal-btn primary" id="joanneEntryBtn" onclick="confirmJoanneEntry()">Add</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -1232,6 +1313,10 @@ function updateSummary(){
   const varBudgeted=(m.variable||[]).reduce((a,r)=>a+r.budgeted,0);
   const totalBudgeted=fixedBudgeted+varBudgeted;
 
+  // Joanne income card
+  const jTotals=joanneCalcTotals();
+  const jic=document.getElementById('sumJoanneIncome');
+  if(jic) jic.textContent=fmtN(jTotals.totalIncome);
   document.getElementById('sumIncome').textContent=fmtN(totalIncome);
   document.getElementById('sumBudgeted').textContent=fmtN(totalBudgeted);
   document.getElementById('sumExpenses').textContent=fmtN(actualSpend);
@@ -1887,7 +1972,7 @@ function confirmNewMonth(){
     }
   }
   if(toSavings>0){ S.savingsBook.push({amount:toSavings,note:'Rollover from '+prev.name,date:new Date().toISOString().split('T')[0],type:'deposit'}); }
-  const nm={name,income:[],variable:[],debtPayments:{},goalContribs:{},carryover,carryoverIsRollover:carryover>0};
+  const nm={name,income:[],variable:[],debtPayments:{},goalContribs:{},carryover,carryoverIsRollover:carryover>0,joanne:{income:[],expenses:[]}};
   nm.fixed=copy?JSON.parse(JSON.stringify((prev.fixed||[]).map(r=>({...r,paid:false,actual:0})))):[]; 
   // Also copy variable categories (zeroed actuals) so categories roll forward
   nm.variable=copy?JSON.parse(JSON.stringify((prev.variable||[]).map(r=>({...r,actual:0})))):[];
@@ -1968,6 +2053,7 @@ function showTab(name,btn){
   if(name==='overview')    updateOverview();
   if(name==='variable')    renderVariableRestoreBanner();
   if(name==='banks')       renderBanks();
+  if(name==='joanne')      renderJoanne();
   if(name==='history')     renderHistory();
   if(name==='savingsbook') renderSavingsBook();
 }
@@ -2042,7 +2128,7 @@ const _origSyncBva=null;
 
 function refreshAll(){
   updatePeriodDisplay(); renderAllRows(); renderDebts(); renderGoals();
-  renderSavingsBook(); updateSummary(); updateOverview(); renderHistory(); renderVariableRestoreBanner();
+  renderSavingsBook(); updateSummary(); updateOverview(); renderHistory(); renderVariableRestoreBanner(); renderJoanne();
 }
 
 // ── DAILY EXPENSES ────────────────────────────────────────────────────────────
@@ -2188,6 +2274,160 @@ function formatDisplayDate(dateStr){
 }
 
 
+
+// ── JOANNE ────────────────────────────────────────────────────────────────────
+function getJoanne(){
+  const m=getM();
+  if(!m.joanne) m.joanne={income:[],expenses:[]};
+  return m.joanne;
+}
+
+function joanneCalcTotals(){
+  const j=getJoanne();
+  const totalIncome=(j.income||[]).reduce((a,e)=>a+e.amount,0);
+  const totalExpenses=(j.expenses||[]).reduce((a,e)=>a+e.amount,0);
+  const netProfit=totalIncome-totalExpenses;
+  return{totalIncome,totalExpenses,netProfit};
+}
+
+function renderJoanne(){
+  const j=getJoanne();
+  const{totalIncome,totalExpenses,netProfit}=joanneCalcTotals();
+
+  // Update banner
+  const ni=document.getElementById('joanneNetIncome');
+  const ne=document.getElementById('joanneNetExpenses');
+  const np=document.getElementById('joanneNetProfit');
+  if(ni) ni.textContent=fmtN(totalIncome);
+  if(ne) ne.textContent=fmtN(totalExpenses);
+  if(np){ np.textContent=(netProfit<0?'-':'')+fmtN(netProfit); np.style.color=netProfit>=0?'var(--green)':'var(--red)'; }
+
+  // Update top card
+  const jic=document.getElementById('sumJoanneIncome');
+  if(jic) jic.textContent=fmtN(totalIncome);
+
+  // Render income list
+  const incList=document.getElementById('joanne-income-list');
+  if(incList){
+    if(!(j.income||[]).length){
+      incList.innerHTML='<div class="empty-state" style="padding:20px;">No income logged yet<br>Tap + to add</div>';
+    } else {
+      incList.innerHTML='';
+      [...j.income].reverse().forEach((e,ri)=>{
+        const realIdx=j.income.length-1-ri;
+        const bankName=e.bankId?(S.banks||[]).find(b=>b.id===e.bankId)?.name:'';
+        incList.innerHTML+=`<div class="deposit-row">
+          <div class="deposit-dot" style="background:var(--mint2)"></div>
+          <div class="deposit-info">
+            <div class="deposit-note">${e.desc||'Income'}${e.note?' · <span style="color:var(--text3);">${e.note}</span>':''}</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:2px;">
+              <span class="deposit-date">${e.date||'—'}</span>
+              ${bankName?`<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:6px;background:rgba(122,184,232,0.15);color:var(--sky2);">🏦 ${bankName}</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="deposit-amount positive">+${fmtN(e.amount)}</div>
+            <button class="del-btn" style="font-size:13px;" onclick="openJoanneEntryModal('income',${realIdx})">✏️</button>
+            <button class="del-btn" onclick="removeJoanneEntry('income',${realIdx})">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+  }
+
+  // Render expense list
+  const expList=document.getElementById('joanne-expense-list');
+  if(expList){
+    if(!(j.expenses||[]).length){
+      expList.innerHTML='<div class="empty-state" style="padding:20px;">No expenses logged yet<br>Tap + to add</div>';
+    } else {
+      expList.innerHTML='';
+      [...j.expenses].reverse().forEach((e,ri)=>{
+        const realIdx=j.expenses.length-1-ri;
+        const bankName=e.bankId?(S.banks||[]).find(b=>b.id===e.bankId)?.name:'';
+        expList.innerHTML+=`<div class="deposit-row">
+          <div class="deposit-dot" style="background:var(--peach2)"></div>
+          <div class="deposit-info">
+            <div class="deposit-note">${e.desc||'Expense'}${e.note?' · <span style="color:var(--text3);">${e.note}</span>':''}</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:2px;">
+              <span class="deposit-date">${e.date||'—'}</span>
+              ${bankName?`<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:6px;background:rgba(122,184,232,0.15);color:var(--sky2);">🏦 ${bankName}</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="deposit-amount negative">−${fmtN(e.amount)}</div>
+            <button class="del-btn" style="font-size:13px;" onclick="openJoanneEntryModal('expense',${realIdx})">✏️</button>
+            <button class="del-btn" onclick="removeJoanneEntry('expense',${realIdx})">✕</button>
+          </div>
+        </div>`;
+      });
+    }
+  }
+}
+
+function openJoanneEntryModal(type, editIdx=null){
+  const isIncome=type==='income';
+  document.getElementById('joanneEntryType').value=type;
+  document.getElementById('joanneEntryEditIdx').value=editIdx!==null?editIdx:'';
+  document.getElementById('joanneEntryTitle').textContent=editIdx!==null?(isIncome?'Edit Income 👜':'Edit Expense 👜'):(isIncome?'Log Income 👜':'Log Expense 👜');
+  document.getElementById('joanneEntrySubTitle').textContent=isIncome?'Add a Joanne income entry':'Add a Joanne business expense';
+  document.getElementById('joanneEntryBtn').textContent=editIdx!==null?'Save Changes':'Add';
+
+  // Populate bank dropdown
+  const bankSel=document.getElementById('joanneEntryBank');
+  bankSel.innerHTML='<option value="">— none —</option>';
+  (S.banks||[]).forEach(b=>{ bankSel.innerHTML+=`<option value="${b.id}">${b.name}</option>`; });
+
+  // Pre-fill if editing
+  if(editIdx!==null){
+    const j=getJoanne();
+    const entries=isIncome?j.income:j.expenses;
+    const e=entries[editIdx];
+    if(e){
+      document.getElementById('joanneEntryDesc').value=e.desc||'';
+      document.getElementById('joanneEntryAmount').value=e.amount||'';
+      document.getElementById('joanneEntryDate').value=e.date||'';
+      document.getElementById('joanneEntryNote').value=e.note||'';
+      bankSel.value=e.bankId||'';
+    }
+  } else {
+    ['joanneEntryDesc','joanneEntryAmount','joanneEntryNote'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('joanneEntryDate').value=new Date().toISOString().split('T')[0];
+    bankSel.value='';
+  }
+  openModal('joanneEntryModal');
+}
+
+function confirmJoanneEntry(){
+  const type=document.getElementById('joanneEntryType').value;
+  const desc=document.getElementById('joanneEntryDesc').value.trim();
+  const amount=parseFloat(document.getElementById('joanneEntryAmount').value)||0;
+  if(!desc||!amount) return;
+  const date=document.getElementById('joanneEntryDate').value;
+  const note=document.getElementById('joanneEntryNote').value.trim();
+  const bankId=document.getElementById('joanneEntryBank').value;
+  const editIdx=document.getElementById('joanneEntryEditIdx').value;
+  const j=getJoanne();
+  const entries=type==='income'?j.income:j.expenses;
+  const entry={desc,amount,date,note,bankId:bankId||undefined};
+  if(editIdx!==''){
+    entries[parseInt(editIdx)]=entry;
+  } else {
+    entries.push(entry);
+  }
+  save(); renderJoanne();
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
+  closeModal('joanneEntryModal');
+}
+
+function removeJoanneEntry(type,idx){
+  const j=getJoanne();
+  const entries=type==='income'?j.income:j.expenses;
+  entries.splice(idx,1);
+  save(); renderJoanne();
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
+}
+
 // ── BANK ACCOUNTS ─────────────────────────────────────────────────────────────
 
 function getBankById(id){ return (S.banks||[]).find(b=>b.id===id); }
@@ -2201,6 +2441,11 @@ function bankBalance(b){
     (mo.fixed||[]).forEach(r=>{ if(r.paid && r.bankId===b.id) bal-=(r.actual||r.budgeted||0); });
     (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) bal-=r.actual||0; });
     (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
+    // Joanne entries
+    if(mo.joanne){
+      (mo.joanne.income||[]).forEach(e=>{ if(e.bankId===b.id) bal+=e.amount||0; });
+      (mo.joanne.expenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
+    }
   });
   S.globalDebts.forEach(d=>{
     if(d.bankId===b.id){
@@ -2261,6 +2506,11 @@ function bankInOut(b){
     if(t.fromId===b.id) totalOut+=t.amount||0;
     if(t.toId===b.id)   totalIn+=t.amount||0;
   });
+  // Joanne entries for current month
+  if(m.joanne){
+    (m.joanne.income||[]).forEach(e=>{ if(e.bankId===b.id) totalIn+=e.amount||0; });
+    (m.joanne.expenses||[]).forEach(e=>{ if(e.bankId===b.id) totalOut+=e.amount||0; });
+  }
   return{totalIn,totalOut};
 }
 
