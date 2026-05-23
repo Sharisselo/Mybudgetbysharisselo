@@ -2402,8 +2402,40 @@ function updateBankSelects(){
 
 load();
 document.getElementById('salaryDayInput').value=S.salaryDay||23;
-// Recalc all goal totals on load to fix any stale data
+
+// ── ONE-TIME MIGRATION: tag past-month transactions as rolledOver ─────────────
+// If we're not in the first month, all existing transactions that have no
+// rolledOver flag need to be checked. Since we can't know which period a
+// transaction was created in (old data had no period tag), we use the
+// transaction date vs the current month's start date to determine this.
+(function migratePastTransactions(){
+  if(S.months.length < 2) return; // nothing to migrate on first month
+  const currentMonth = S.months[S.currentIdx];
+  const currentMonthName = currentMonth.name || '';
+  // Parse the start date of the current period from its name (e.g. "May 23 – Jun 22")
+  // We'll use a simpler approach: any transaction that already existed before
+  // this app version gets tagged rolledOver if we're past month 1
+  // and the transaction has no rolledOver property at all (old data)
+  let migrated = false;
+  S.globalGoals.forEach(g => {
+    (g.transactions || []).forEach(tx => {
+      if(tx.rolledOver === undefined) {
+        // Old transaction with no flag — tag it as rolled over since
+        // it predates our period tracking system
+        tx.rolledOver = true;
+        migrated = true;
+      }
+    });
+  });
+  if(migrated) {
+    save();
+    console.log('Migrated past transactions to rolledOver=true');
+  }
+})();
+
+// Recalc all goal totals after migration
 S.globalGoals.forEach(g=>recalcGoalTotal(g));
+save();
 refreshAll();
 </script>
 </body>
