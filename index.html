@@ -1414,19 +1414,21 @@ function renderGoals(){
     const ts=g.totalSaved||0, tgt=parseFloat(g.target)||0;
     const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
     const rem=Math.max(tgt-ts,0);
-    const txLog=g.transactions||[];
+    // Only show current period transactions (not rolled over from previous months)
+    const txLog=(g.transactions||[]).filter(tx=>!tx.rolledOver);
+    const allTxLog=g.transactions||[];
     // Build transaction log HTML
     let txHtml='';
     if(txLog.length){
       txHtml=`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">Transaction Log</div>`;
-      [...txLog].reverse().forEach((tx,ri)=>{
-        const realIdx=txLog.length-1-ri;
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">This Period</div>`;
+      [...txLog].reverse().forEach((tx)=>{
+        const realIdx=allTxLog.indexOf(tx);
         const isOut=tx.type==='withdrawal';
         txHtml+=`<div class="goal-tx-row">
           <div class="goal-tx-dot" style="background:${isOut?'var(--rose2)':'var(--mint2)'}"></div>
           <div class="goal-tx-info">
-            <div class="goal-tx-note">${tx.note||( isOut?'Withdrawal':'Deposit')}${tx.rolledOver?' <span style="font-size:9px;color:var(--text3);">(prev)</span>':''}</div>
+            <div class="goal-tx-note">${tx.note||(isOut?'Withdrawal':'Deposit')}</div>
             <div class="goal-tx-date">${tx.date||'—'}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -1441,9 +1443,9 @@ function renderGoals(){
       <div class="goal-header">
         <div>
           <div class="goal-name">${g.name}</div>
-          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;">
             <span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(173,144,216,0.15);color:var(--lavender2);">Opening: ${fmtN(g.beginBalance||0)}</span>
-
+            <button onclick="openGoalEdit('${g.id}')" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:0;" title="Edit beginning balance">✏️</button>
           </div>
         </div>
         <div class="goal-pct">${pct}%</div>
