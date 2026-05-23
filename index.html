@@ -258,6 +258,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cc-limit-fill{height:100%;border-radius:4px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
 .cc-available{color:var(--green);}
 .cc-owed{color:var(--red);}
+
+.reimb-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.reimb-row:last-child{border-bottom:none;}
+.reimb-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:7px;background:rgba(74,158,122,0.12);color:var(--green);white-space:nowrap;}
+.reimb-pending{background:rgba(247,197,168,0.25);color:var(--amber);}
+.reimb-section{background:rgba(74,158,122,0.04);border:1px solid rgba(74,158,122,0.15);border-radius:12px;padding:12px;margin-top:10px;}
 .remove-btn{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:4px 10px;font-size:10px;color:var(--text3);cursor:pointer;transition:all 0.2s;}
 .remove-btn:hover{border-color:var(--rose2);color:var(--rose2);}
 .footer{text-align:center;padding:18px 18px 50px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
@@ -966,6 +972,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Reimbursement Modal -->
+<div class="modal-overlay" id="reimbModal">
+  <div class="modal">
+    <div class="modal-title" id="reimbModalTitle">Add Reimbursement 💰</div>
+    <div class="modal-sub">Log what can be reimbursed from this category</div>
+    <input type="hidden" id="reimbTabType"/>
+    <input type="hidden" id="reimbEditIdx"/>
+    <div class="field-row"><div class="field-label">Category</div>
+      <select class="modal-input" id="reimbCategory" style="cursor:pointer;"><option value="">— select —</option></select>
+    </div>
+    <div class="field-row"><div class="field-label">Reimbursable Amount (XCG)</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:5px;">The portion of this expense you expect to get back</div>
+      <input class="modal-input" id="reimbAmount" type="number" placeholder="0"/>
+    </div>
+    <div class="field-row"><div class="field-label">Note (optional)</div>
+      <input class="modal-input" id="reimbNote" placeholder="e.g. Work dinner, Client travel"/>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+      <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Reimbursement Received</div>
+      <div class="field-row"><div class="field-label">Amount Received (XCG)</div>
+        <input class="modal-input" id="reimbReceived" type="number" placeholder="0 (if not yet received)"/>
+      </div>
+      <div class="field-row"><div class="field-label">Date Received</div>
+        <input class="modal-input" id="reimbReceivedDate" type="date"/>
+      </div>
+      <div class="field-row"><div class="field-label">Bank Account Received Into</div>
+        <select class="modal-input" id="reimbBankId" style="cursor:pointer;"><option value="">— not yet received —</option></select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('reimbModal')">Cancel</button>
+      <button class="modal-btn green" id="reimbSaveBtn" onclick="confirmReimb()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -1185,6 +1227,9 @@ function renderFixedSummary(){
       <div class="progress-bar"><div class="progress-fill ${pctR>=100?'fill-rose':'fill-green'}" style="width:${Math.min(pctR,100)}%"></div></div>
     </div>`;
   });
+  // Reimbursements for fixed
+  const reimbs=(getM().reimbursements||[]).filter(r=>r.tabType==='fixed');
+  const reimbHtml=renderReimbSection('fixed', f);
   document.getElementById('fixed-summary').innerHTML=`<div class="card" style="padding:14px;">
     <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
       <span style="font-size:11px;color:var(--text2)">Paid: <strong style="color:var(--green)">${fmtN(paidAmt)}</strong></span>
@@ -1194,6 +1239,7 @@ function renderFixedSummary(){
     <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill fill-green" style="width:${pct}%"></div></div>
     <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Per Category</div>
     ${rowsHtml||'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">Add fixed expenses above</div>'}
+    ${reimbHtml}
   </div>`;
 }
 
@@ -1253,6 +1299,7 @@ function updateBvaSummary(type){
       <div class="progress-bar"><div class="progress-fill ${pctR>=100?'fill-rose':'fill-green'}" style="width:${Math.min(pctR,100)}%"></div></div>
     </div>`;
   });
+  const varReimbHtml=renderReimbSection('variable', rows);
   document.getElementById('variable-summary').innerHTML=`<div class="card" style="padding:14px;">
     <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
       <span style="font-size:11px;color:var(--text2)">Budgeted: <strong>${fmtN(tB)}</strong></span>
@@ -1262,6 +1309,7 @@ function updateBvaSummary(type){
     <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill ${tA>tB?'fill-rose':'fill-green'}" style="width:${tB>0?Math.min(tA/tB*100,100):0}%"></div></div>
     <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Per Category</div>
     ${rowsHtml||'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">Add categories above</div>'}
+    ${varReimbHtml}
   </div>`;
 }
 
@@ -1282,8 +1330,10 @@ function calcPeriodTotals(m){
           .reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
         return a+net;
       },0));
-  // Actual spend = fixed (paid) + variable only — debt is tracked separately
-  const totalSpent=fixedActual+varActual;
+  // Received reimbursements reduce actual spend
+  const reimbReceived=(m.reimbursements||[]).reduce((a,r)=>a+(r.received||0),0);
+  // Actual spend = fixed (paid) + variable only — debt is tracked separately, reimbursements deducted
+  const totalSpent=Math.max(0,fixedActual+varActual-reimbReceived);
   // Saved this period = goal contributions + savings book deposits this period
   const bookThisPeriod=(S.savingsBook||[])
     .filter(e=>e.type==='deposit'&&!e.isBeginning)
@@ -2129,6 +2179,132 @@ const _origSyncBva=null;
 function refreshAll(){
   updatePeriodDisplay(); renderAllRows(); renderDebts(); renderGoals();
   renderSavingsBook(); updateSummary(); updateOverview(); renderHistory(); renderVariableRestoreBanner(); renderJoanne();
+}
+
+
+// ── REIMBURSEMENTS ────────────────────────────────────────────────────────────
+function renderReimbSection(tabType, categoryRows){
+  const m=getM();
+  if(!m.reimbursements) m.reimbursements=[];
+  const reimbs=m.reimbursements.filter(r=>r.tabType===tabType);
+  const totalReimbursable=reimbs.reduce((a,r)=>a+r.amount,0);
+  const totalReceived=reimbs.reduce((a,r)=>a+(r.received||0),0);
+  const totalPending=totalReimbursable-totalReceived;
+
+  let html=`<div class="reimb-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);">💰 Reimbursements</div>
+      <button onclick="openReimbModal('${tabType}')" style="background:linear-gradient(135deg,var(--mint),var(--mint2));border:none;color:#fff;font-size:10px;font-weight:600;padding:4px 10px;border-radius:8px;cursor:pointer;">+ Add</button>
+    </div>`;
+
+  if(!reimbs.length){
+    html+=`<div style="font-size:11px;color:var(--text3);text-align:center;padding:6px 0;">No reimbursements logged yet</div>`;
+  } else {
+    reimbs.forEach((r,i)=>{
+      const realIdx=m.reimbursements.indexOf(r);
+      const isPending=!r.received||r.received<r.amount;
+      const bankName=r.bankId?(S.banks||[]).find(b=>b.id===r.bankId)?.name:'';
+      html+=`<div class="reimb-row">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;color:var(--text);">${r.category||'—'}${r.note?' · <span style="color:var(--text3);">${r.note}</span>':''}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px;">
+            ${r.received?`Received ${fmtN(r.received)} on ${r.receivedDate||'—'}${bankName?' → '+bankName:''}`:' Pending'}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="reimb-badge ${isPending?'reimb-pending':''}">${isPending?'Pending':'Received'}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--green);">+${fmtN(r.received||0)}<span style="color:var(--text3);"> / ${fmtN(r.amount)}</span></span>
+          <button class="del-btn" style="font-size:12px;" onclick="openReimbModal('${tabType}',${realIdx})">✏️</button>
+          <button class="del-btn" onclick="removeReimb(${realIdx})">✕</button>
+        </div>
+      </div>`;
+    });
+    html+=`<div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);font-size:11px;">
+      <span style="color:var(--text2);">Total reimbursable: <strong>${fmtN(totalReimbursable)}</strong></span>
+      <span style="color:${totalPending>0?'var(--amber)':'var(--green)'};">${totalPending>0?fmtN(totalPending)+' pending':'All received ✓'}</span>
+    </div>`;
+  }
+  html+='</div>';
+  return html;
+}
+
+function openReimbModal(tabType, editIdx=null){
+  const m=getM();
+  if(!m.reimbursements) m.reimbursements=[];
+  document.getElementById('reimbTabType').value=tabType;
+  document.getElementById('reimbEditIdx').value=editIdx!==null?editIdx:'';
+  document.getElementById('reimbModalTitle').textContent=editIdx!==null?'Edit Reimbursement 💰':'Add Reimbursement 💰';
+  document.getElementById('reimbSaveBtn').textContent=editIdx!==null?'Save Changes':'Save';
+
+  // Populate categories from current tab
+  const cats=tabType==='fixed'
+    ?(m.fixed||[]).map(r=>r.name).filter(Boolean)
+    :(m.variable||[]).map(r=>r.name).filter(Boolean);
+  const catSel=document.getElementById('reimbCategory');
+  catSel.innerHTML='<option value="">— select category —</option>';
+  cats.forEach(c=>{ catSel.innerHTML+=`<option value="${c}">${c}</option>`; });
+
+  // Populate bank dropdown
+  const bankSel=document.getElementById('reimbBankId');
+  bankSel.innerHTML='<option value="">— not yet received —</option>';
+  (S.banks||[]).forEach(b=>{ bankSel.innerHTML+=`<option value="${b.id}">${b.name}</option>`; });
+
+  // Pre-fill if editing
+  if(editIdx!==null){
+    const r=m.reimbursements[editIdx];
+    if(r){
+      catSel.value=r.category||'';
+      document.getElementById('reimbAmount').value=r.amount||'';
+      document.getElementById('reimbNote').value=r.note||'';
+      document.getElementById('reimbReceived').value=r.received||'';
+      document.getElementById('reimbReceivedDate').value=r.receivedDate||'';
+      bankSel.value=r.bankId||'';
+    }
+  } else {
+    ['reimbAmount','reimbNote','reimbReceived','reimbReceivedDate'].forEach(id=>document.getElementById(id).value='');
+    bankSel.value='';
+  }
+  openModal('reimbModal');
+}
+
+function confirmReimb(){
+  const m=getM();
+  if(!m.reimbursements) m.reimbursements=[];
+  const tabType=document.getElementById('reimbTabType').value;
+  const category=document.getElementById('reimbCategory').value;
+  const amount=parseFloat(document.getElementById('reimbAmount').value)||0;
+  if(!category||!amount) return;
+  const received=parseFloat(document.getElementById('reimbReceived').value)||0;
+  const receivedDate=document.getElementById('reimbReceivedDate').value;
+  const bankId=document.getElementById('reimbBankId').value;
+  const note=document.getElementById('reimbNote').value.trim();
+  const editIdx=document.getElementById('reimbEditIdx').value;
+
+  const entry={tabType,category,amount,note,
+    received:received||undefined,
+    receivedDate:receivedDate||undefined,
+    bankId:bankId||undefined};
+
+  if(editIdx!==''){
+    const old=m.reimbursements[parseInt(editIdx)];
+    // Reverse old bank effect if bank changed
+    m.reimbursements[parseInt(editIdx)]=entry;
+  } else {
+    m.reimbursements.push(entry);
+  }
+  save(); updateSummary(); updateOverview();
+  renderFixedSummary(); updateBvaSummary('variable');
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
+  closeModal('reimbModal');
+}
+
+function removeReimb(idx){
+  const m=getM();
+  if(!m.reimbursements) return;
+  m.reimbursements.splice(idx,1);
+  save(); updateSummary(); updateOverview();
+  renderFixedSummary(); updateBvaSummary('variable');
+  if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
 
 // ── DAILY EXPENSES ────────────────────────────────────────────────────────────
