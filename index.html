@@ -2654,6 +2654,12 @@ function bankBalance(b){
       S.months.forEach(mo=>{ bal+=parseFloat((mo.debtPayments||{})[d.id])||0; });
     }
   });
+  // Received reimbursements add to the chosen bank account
+  S.months.forEach(mo=>{
+    (mo.reimbursements||[]).forEach(r=>{
+      if(r.bankId===b.id && r.received) bal+=r.received;
+    });
+  });
   (S.transfers||[]).forEach(t=>{
     if(t.fromId===b.id) bal-=t.amount||0;
     if(t.toId===b.id)   bal+=t.amount||0;
