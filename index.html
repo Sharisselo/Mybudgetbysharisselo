@@ -1708,6 +1708,8 @@ function renderGoals(){
 
   // Individual goal cards
   list.innerHTML='';
+  // Store bank IDs for button access
+  window._savingsGoalBankIds = savingsAccounts.map(b=>b.id);
   savingsAccounts.forEach((b,i)=>{
     const bal=bankBalance(b);
     const begin=parseFloat(b.beginBalance)||0;
@@ -1742,10 +1744,10 @@ function renderGoals(){
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--green)">${pct}%</div><div class="goal-total-lbl">Progress</div></div>
       </div>`:`
       <div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text3);">
-        <span>No target set yet</span>
+        <span>No target set yet — tap Set Target below</span>
       </div>`}
       <div class="debt-actions" style="margin-top:${target>0?'8px':'4px'};">
-        <button class="action-btn edit" data-bid="${b.id}" onclick="openSetSavingsTarget(this.dataset.bid)">🎯 ${target>0?'Edit Target':'Set Target'}</button>
+        <button class="action-btn edit" onclick="openSetSavingsTarget(window._savingsGoalBankIds[${i}])">🎯 ${target>0?'Edit Target':'Set Target'}</button>
       </div>
     </div>`;
   });
