@@ -1201,6 +1201,14 @@ function syncFixed(){
   save(); updateSummary(); renderFixedSummary(); updateOverview(); updateFixedLeftBadges();
   if(document.getElementById('tab-banks').classList.contains('active')) renderBanks();
 }
+
+function getCategoryReimb(tabType, categoryName){
+  const m=getM();
+  return (m.reimbursements||[])
+    .filter(r=>r.tabType===tabType && r.category===categoryName)
+    .reduce((a,r)=>a+(r.received||0),0);
+}
+
 function renderFixedSummary(){
   const f=getM().fixed||[];
   const total=f.reduce((a,r)=>a+r.budgeted,0);
@@ -1210,7 +1218,10 @@ function renderFixedSummary(){
   // per-row breakdown
   let rowsHtml='';
   f.filter(r=>r.name||r.budgeted).forEach(r=>{
-    const spent=r.actual||r.budgeted; const left=r.budgeted-spent;
+    const rawSpent=r.actual||r.budgeted;
+    const catReimb=getCategoryReimb('fixed', r.name);
+    const spent=Math.max(0, rawSpent-catReimb);
+    const left=r.budgeted-spent;
     const lc=left>0?'var(--green)':left<0?'var(--red)':'var(--text3)';
     const pctR=r.budgeted>0?Math.min(Math.round(spent/r.budgeted*100),100):0;
     rowsHtml+=`<div style="margin-bottom:10px;">
@@ -1218,10 +1229,11 @@ function renderFixedSummary(){
         <span style="font-size:11px;color:var(--text);display:flex;align-items:center;gap:5px;">
           ${r.paid?'<span style="color:var(--mint2);font-size:10px;">✓</span>':'<span style="color:var(--text3);font-size:10px;">○</span>'}
           ${r.name||'—'}
+          ${catReimb>0?`<span style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(74,158,122,0.12);color:var(--green);">−${fmtN(catReimb)} reimb.</span>`:''}
         </span>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);">${fmtN(spent)} / ${fmtN(r.budgeted)}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:7px;background:${left>=0?'rgba(74,158,122,0.12)':'rgba(212,96,122,0.12)'};color:${lc};">${left>=0?'+':''+(left===0?'':'')}${left===0?'✓':fmtN(Math.abs(left))+(left<0?' over':' left')}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:7px;background:${left>=0?'rgba(74,158,122,0.12)':'rgba(212,96,122,0.12)'};color:${lc};">${left===0?'✓':fmtN(Math.abs(left))+(left<0?' over':' left')}</span>
         </div>
       </div>
       <div class="progress-bar"><div class="progress-fill ${pctR>=100?'fill-rose':'fill-green'}" style="width:${Math.min(pctR,100)}%"></div></div>
@@ -1285,14 +1297,19 @@ function updateBvaSummary(type){
   // per-row breakdown
   let rowsHtml='';
   rows.filter(r=>r.name||r.budgeted).forEach(r=>{
-    const left=r.budgeted-r.actual;
+    const catReimb=getCategoryReimb('variable', r.name);
+    const netActual=Math.max(0, r.actual-catReimb);
+    const left=r.budgeted-netActual;
     const lc=left>0?'var(--green)':left<0?'var(--red)':'var(--text3)';
-    const pctR=r.budgeted>0?Math.min(Math.round(r.actual/r.budgeted*100),100):0;
+    const pctR=r.budgeted>0?Math.min(Math.round(netActual/r.budgeted*100),100):0;
     rowsHtml+=`<div style="margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
-        <span style="font-size:11px;color:var(--text);">${r.name||'—'}</span>
+        <span style="font-size:11px;color:var(--text);display:flex;align-items:center;gap:5px;">
+          ${r.name||'—'}
+          ${catReimb>0?`<span style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(74,158,122,0.12);color:var(--green);">−${fmtN(catReimb)} reimb.</span>`:''}
+        </span>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);">${fmtN(r.actual)} / ${fmtN(r.budgeted)}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);">${fmtN(netActual)} / ${fmtN(r.budgeted)}</span>
           <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:2px 6px;border-radius:7px;background:${left>=0?'rgba(74,158,122,0.12)':'rgba(212,96,122,0.12)'};color:${lc};">${left===0?'✓':fmtN(Math.abs(left))+(left<0?' over':' left')}</span>
         </div>
       </div>
