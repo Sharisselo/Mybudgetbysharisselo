@@ -300,7 +300,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <button class="tab-btn" onclick="showTab('fixed',this)"><span class="tab-icon">🏠</span>Fixed</button>
   <button class="tab-btn" onclick="showTab('variable',this)"><span class="tab-icon">🛒</span>Variable</button>
   <button class="tab-btn" onclick="showTab('debts',this)"><span class="tab-icon">💳</span>Debts</button>
-  <button class="tab-btn" onclick="showTab('savings',this)"><span class="tab-icon">🎯</span>Goals</button>
+  <button class="tab-btn" onclick="showTab('savings',this)"><span class="tab-icon">🎯</span>Savings</button>
   <button class="tab-btn" onclick="showTab('savingsbook',this)"><span class="tab-icon">📖</span>Book</button>
   <button class="tab-btn" onclick="showTab('overview',this)"><span class="tab-icon">📊</span>Overview</button>
   <button class="tab-btn" onclick="showTab('history',this)"><span class="tab-icon">📅</span>History</button>
@@ -383,10 +383,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- GOALS -->
 <div id="tab-savings" class="tab-content">
   <div class="section">
-    <div class="section-title">Savings Goals</div>
-    <div class="section-sub">Track progress toward each goal — edit balance anytime</div>
+    <div class="section-title">Savings Goals 🎯</div>
+    <div class="section-sub">Your savings accounts — set a target and track progress</div>
+    <!-- Total saved banner -->
+    <div id="goals-total-banner" style="margin-bottom:14px;"></div>
+    <!-- Savings account goal cards -->
     <div id="goals-list"></div>
-    <button class="new-month-btn" onclick="openGoalModal()">+ Add Goal</button>
+    <div id="goals-empty" style="display:none;" class="empty-state">No savings accounts yet 🌸<br>Add a bank account with type "Savings" on the Banks tab to see it here</div>
   </div>
 </div>
 
@@ -1008,6 +1011,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- Savings Target Modal -->
+<div class="modal-overlay" id="savingsTargetModal">
+  <div class="modal">
+    <div class="modal-title">Set Savings Target 🎯</div>
+    <div class="modal-sub" id="savingsTargetSub">Set a savings goal for this account</div>
+    <input type="hidden" id="savingsTargetBankId"/>
+    <div class="field-row">
+      <div class="field-label">Target Amount (XCG)</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:5px;">How much do you want to save in this account?</div>
+      <input class="modal-input" id="savingsTargetAmount" type="number" placeholder="0"/>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="closeModal('savingsTargetModal')">Cancel</button>
+      <button class="modal-btn green" onclick="confirmSavingsTarget()">Save Target</button>
+    </div>
+  </div>
+</div>
+
 <div class="footer">✦ MY BUDGET TRACKER by Sharisse Lo-A-Njoe ✦</div>
 
 <script>
@@ -1338,15 +1359,14 @@ function calcPeriodTotals(m){
   const fixedActual=(m.fixed||[]).filter(r=>r.paid).reduce((a,r)=>a+(r.actual||r.budgeted),0);
   const varActual=(m.variable||[]).reduce((a,r)=>a+r.actual,0);
   const debtPaid=Object.values(m.debtPayments||{}).reduce((a,v)=>a+(parseFloat(v)||0),0);
-  // goalSaved: use savedSnapshot if available (past months), else compute from transactions
-  const goalSaved = m.savedSnapshot !== undefined
-    ? m.savedSnapshot
-    : Math.max(0,S.globalGoals.reduce((a,g)=>{
-        const net=(g.transactions||[])
-          .filter(tx=>!tx.rolledOver)
-          .reduce((s,tx)=>s+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-        return a+net;
-      },0));
+  // goalSaved = total added above beginning balance across all savings accounts
+  const goalSaved = Math.max(0,(S.banks||[])
+    .filter(b=>b.type==='savings')
+    .reduce((a,b)=>{
+      const bal=bankBalance(b);
+      const begin=parseFloat(b.beginBalance)||0;
+      return a+Math.max(0,bal-begin);
+    },0));
   // Received reimbursements reduce actual spend
   const reimbReceived=(m.reimbursements||[]).reduce((a,r)=>a+(r.received||0),0);
   // Actual spend = fixed (paid) + variable only — debt is tracked separately, reimbursements deducted
@@ -1371,8 +1391,8 @@ function updateSummary(){
   // Saved = goal contributions logged this period only
   // (Savings book is physical cash tracked separately — not deducted from budget)
   const savedThisPeriod=t.goalSaved;
-  // Remaining = Income − Spent − Saved (actualSpend already has reimbursements deducted)
-  const remaining=totalIncome-actualSpend-savedThisPeriod;
+  // Remaining = Income − Spent only (savings is shown informational, already in bank balances)
+  const remaining=totalIncome-actualSpend;
 
   // Budgeted = total budgeted amounts from fixed + variable tabs
   const m=getM();
@@ -1399,7 +1419,7 @@ function updateSummary(){
   bb.textContent=(remaining<0?'-':'')+fmtN(remaining);
   bb.className='balance-amount '+(remaining>=0?'positive':'negative');
   document.getElementById('bigBalanceSub').textContent=remaining>=0
-    ?`After spending ${fmtN(actualSpend)} and saving ${fmtN(savedThisPeriod)}`
+    ?`Income minus actual spend this period`
     :`Over budget by ${fmtN(Math.abs(remaining))}`;
 }
 
@@ -1413,7 +1433,8 @@ function updateSavingsSummary(){
   const grandTotal = goalsTotal + bookBalance;
   document.getElementById('grandSavingsTotal').textContent = fmtN(grandTotal);
   document.getElementById('overviewGoalsTotal').textContent = fmtN(goalsTotal);
-  document.getElementById('overviewGoalsCount').textContent = S.globalGoals.length + ' goal' + (S.globalGoals.length===1?'':'s');
+  const savingsCount=(S.banks||[]).filter(b=>b.type==='savings').length;
+  document.getElementById('overviewGoalsCount').textContent = savingsCount + ' account' + (savingsCount===1?'':'s');
   document.getElementById('overviewBookTotal').textContent = fmtN(bookBalance);
   document.getElementById('overviewBookCount').textContent = bookEntries.length + ' entr' + (bookEntries.length===1?'y':'ies');
   const bd = document.getElementById('overviewGoalsBreakdown'); if(!bd) return;
@@ -1477,7 +1498,7 @@ function updateBvaTable(){
   // Savings row — clearly separate from expenses
   if(savedThisPeriod>0){
     html+=`<div class="bva-ov-row" style="background:rgba(122,184,232,0.06);">
-      <span style="color:var(--sky2);">🎯 Savings (goals)</span>
+      <span style="color:var(--sky2);">🎯 Added to savings</span>
       <span class="bva-ov-val" style="color:var(--text3);">—</span>
       <span class="bva-ov-val" style="color:var(--sky2);">${fmtN(savedThisPeriod)}</span>
       <span class="bva-ov-val"><span class="diff-badge" style="background:rgba(122,184,232,0.15);color:var(--sky2);">allocated</span></span>
@@ -1650,168 +1671,86 @@ function removeDebt(id){
 
 // ── GOALS ─────────────────────────────────────────────────────────────────────
 function renderGoals(){
-  const m=getM(), list=document.getElementById('goals-list');
+  const list=document.getElementById('goals-list');
+  const emptyEl=document.getElementById('goals-empty');
+  const bannerEl=document.getElementById('goals-total-banner');
+  if(!list) return;
+
+  // Get all savings accounts
+  const savingsAccounts=(S.banks||[]).filter(b=>b.type==='savings');
+
+  if(!savingsAccounts.length){
+    list.innerHTML='';
+    if(emptyEl) emptyEl.style.display='block';
+    if(bannerEl) bannerEl.innerHTML='';
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
+
+  // Calculate totals
+  const totalBalance=savingsAccounts.reduce((a,b)=>a+bankBalance(b),0);
+  const totalBegin=savingsAccounts.reduce((a,b)=>a+(parseFloat(b.beginBalance)||0),0);
+  const totalSavedAboveBegin=Math.max(0,totalBalance-totalBegin);
+  const totalTarget=savingsAccounts.reduce((a,b)=>a+(parseFloat(b.savingsTarget)||0),0);
+
+  // Banner
+  if(bannerEl){
+    bannerEl.innerHTML=`<div style="background:linear-gradient(135deg,#edf9f3,#e8f4fd);border:1px solid rgba(114,199,168,0.4);border-radius:20px;padding:20px;text-align:center;box-shadow:0 4px 18px rgba(114,199,168,0.12);">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mint2);margin-bottom:8px;">Total Savings Balance</div>
+      <div style="font-family:'Playfair Display',serif;font-size:34px;color:var(--green);margin-bottom:8px;">${fmtN(totalBalance)}</div>
+      <div style="display:flex;justify-content:center;gap:20px;font-size:11px;color:var(--text2);">
+        <span>Opening: <strong>${fmtN(totalBegin)}</strong></span>
+        <span style="color:var(--green);">Added: <strong>+${fmtN(totalSavedAboveBegin)}</strong></span>
+        ${totalTarget>0?`<span>Target: <strong>${fmtN(totalTarget)}</strong></span>`:''}
+      </div>
+    </div>`;
+  }
+
+  // Individual goal cards
   list.innerHTML='';
-  S.globalGoals.forEach(g=>{
-    const tc=parseFloat((m.goalContribs||{})[g.id])||0;
-    const ts=g.totalSaved||0, tgt=parseFloat(g.target)||0;
-    const pct=tgt>0?Math.min(Math.round(ts/tgt*100),100):0;
-    const rem=Math.max(tgt-ts,0);
-    // Only show current period transactions (not rolled over from previous months)
-    const txLog=(g.transactions||[]).filter(tx=>!tx.rolledOver);
-    const allTxLog=g.transactions||[];
-    // Build transaction log HTML
-    let txHtml='';
-    if(txLog.length){
-      txHtml=`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;">This Period</div>`;
-      [...txLog].reverse().forEach((tx)=>{
-        const realIdx=allTxLog.indexOf(tx);
-        const isOut=tx.type==='withdrawal';
-        txHtml+=`<div class="goal-tx-row">
-          <div class="goal-tx-dot" style="background:${isOut?'var(--rose2)':'var(--mint2)'}"></div>
-          <div class="goal-tx-info">
-            <div class="goal-tx-note">${tx.note||(isOut?'Withdrawal':'Deposit')}</div>
-            <div class="goal-tx-date">${tx.date||'—'}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span class="goal-tx-amount ${isOut?'out':'in'}">${isOut?'−':'+'}${fmtN(tx.amount)}</span>
-            <button class="del-btn" style="font-size:12px;" onclick="removeGoalTransaction('${g.id}',${realIdx})">✕</button>
-          </div>
-        </div>`;
-      });
-      txHtml+='</div>';
-    }
-    list.innerHTML+=`<div class="goal-card" data-gid="${g.id}">
+  savingsAccounts.forEach((b,i)=>{
+    const bal=bankBalance(b);
+    const begin=parseFloat(b.beginBalance)||0;
+    const addedAboveBegin=Math.max(0,bal-begin);
+    const target=parseFloat(b.savingsTarget)||0;
+    const pct=target>0?Math.min(Math.round(bal/target*100),100):0;
+    const rem=target>0?Math.max(target-bal,0):0;
+    const color=COLORS[i%COLORS.length];
+
+    list.innerHTML+=`<div class="goal-card">
       <div class="goal-header">
         <div>
-          <div class="goal-name">${g.name}</div>
-          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(173,144,216,0.15);color:var(--lavender2);">Opening: ${fmtN(g.beginBalance||0)}</span>
-            <button onclick="openGoalEdit('${g.id}')" style="background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;padding:0;" title="Edit beginning balance">✏️</button>
+          <div class="goal-name">💰 ${b.name}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
+            <span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(173,144,216,0.15);color:var(--lavender2);">Opening: ${fmtN(begin)}</span>
+            ${addedAboveBegin>0?`<span style="font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(74,158,122,0.15);color:var(--green);">+${fmtN(addedAboveBegin)} added</span>`:''}
           </div>
         </div>
-        <div class="goal-pct">${pct}%</div>
+        <div style="text-align:right;">
+          ${pct>0?`<div style="font-family:'DM Mono',monospace;font-size:17px;font-weight:500;color:var(--sky2);">${pct}%</div>`:''}
+          <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--green);">${fmtN(bal)}</div>
+        </div>
       </div>
+      ${target>0?`
       <div class="progress-wrap">
-        <div class="progress-label"><span>${fmtN(ts)} saved</span><span>${fmtN(tgt)} goal</span></div>
-        <div class="progress-bar"><div class="progress-fill fill-sky" style="width:${pct}%"></div></div>
+        <div class="progress-label"><span>${fmtN(bal)} saved</span><span>${fmtN(target)} target</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color};"></div></div>
       </div>
       <div class="goal-totals">
-        <div class="goal-total-item"><div class="goal-total-val" style="color:var(--sky2)">${fmtN(ts)}</div><div class="goal-total-lbl">Total Saved</div></div>
+        <div class="goal-total-item"><div class="goal-total-val" style="color:var(--sky2)">${fmtN(bal)}</div><div class="goal-total-lbl">Balance</div></div>
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--red)">${fmtN(rem)}</div><div class="goal-total-lbl">Remaining</div></div>
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--green)">${pct}%</div><div class="goal-total-lbl">Progress</div></div>
-      </div>
-      <!-- Transaction log -->
-      ${txHtml}
-
-      <div class="debt-actions" style="margin-top:8px;">
-        <button class="action-btn edit" style="background:rgba(212,96,122,0.1);color:var(--red);border-color:rgba(212,96,122,0.25);" onclick="openGoalTransaction('${g.id}','withdrawal')">💸 Use Funds</button>
-        <button class="action-btn edit" onclick="openGoalTransaction('${g.id}','deposit')">💰 Add Funds</button>
-      </div>
-      <div class="debt-actions">
-        <button class="action-btn edit" onclick="openGoalEdit('${g.id}')">✏️ Edit Goal</button>
-        <button class="action-btn danger" onclick="removeGoal('${g.id}')">🗑 Delete</button>
+      </div>`:`
+      <div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;">
+        <span>No target set</span>
+        <button onclick="openSetSavingsTarget('${b.id}')" style="background:linear-gradient(135deg,var(--sky),var(--sky2));border:none;color:#fff;font-size:10px;font-weight:600;padding:5px 10px;border-radius:8px;cursor:pointer;">+ Set Target</button>
+      </div>`}
+      <div class="debt-actions" style="margin-top:${target>0?'8px':'4px'};">
+        <button class="action-btn edit" onclick="openSetSavingsTarget('${b.id}')">🎯 ${target>0?'Edit Target':'Set Target'}</button>
+        <button class="action-btn edit" onclick="showTab('banks',document.querySelector('.tab-btn:nth-child(8)'))">🏦 View Account</button>
       </div>
     </div>`;
   });
-  if(!S.globalGoals.length) list.innerHTML='<div class="empty-state">No savings goals yet 🌸<br>Tap + Add Goal to get started</div>';
-}
-
-
-function openGoalTransaction(id, type){
-  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
-  document.getElementById('goalTxId').value=id;
-  document.getElementById('goalTxType').value=type;
-  const isOut=type==='withdrawal';
-  document.getElementById('goalTxTitle').textContent=isOut?`Use Funds 💸 — ${g.name}`:`Add Funds 💰 — ${g.name}`;
-  document.getElementById('goalTxSub').textContent=isOut
-    ?`Current balance: ${fmtN(g.totalSaved||0)} — how much are you withdrawing?`
-    :`Current balance: ${fmtN(g.totalSaved||0)} — how much are you adding?`;
-  document.getElementById('goalTxBtn').textContent=isOut?'Withdraw':'Add';
-  document.getElementById('goalTxBtn').className='modal-btn '+(isOut?'primary':'green');
-  document.getElementById('goalTxDate').value=new Date().toISOString().split('T')[0];
-  ['goalTxAmount','goalTxNote'].forEach(id=>document.getElementById(id).value='');
-  openModal('goalTxModal');
-}
-
-function confirmGoalTransaction(){
-  const id=document.getElementById('goalTxId').value;
-  const type=document.getElementById('goalTxType').value;
-  const amount=parseFloat(document.getElementById('goalTxAmount').value)||0;
-  if(!amount) return;
-  const note=document.getElementById('goalTxNote').value.trim();
-  const date=document.getElementById('goalTxDate').value;
-  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
-  if(!g.transactions) g.transactions=[];
-  g.transactions.push({type,amount,note,date});
-  recalcGoalTotal(g);
-  save(); renderGoals(); updateSummary(); updateOverview();
-  closeModal('goalTxModal');
-}
-
-function removeGoalTransaction(goalId, txIdx){
-  const g=S.globalGoals.find(x=>x.id===goalId); if(!g||!g.transactions) return;
-  g.transactions.splice(txIdx,1);
-  recalcGoalTotal(g);
-  save(); renderGoals(); updateSummary(); updateOverview();
-}
-
-
-function openGoalBalanceFixer(){
-  const list = document.getElementById('goalBalanceFixerList');
-  list.innerHTML = '';
-  S.globalGoals.forEach(g => {
-    list.innerHTML += `<div class="field-row">
-      <div class="field-label">${g.name}</div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:5px;">Current opening: ${fmtN(g.beginBalance||0)} — Total saved: ${fmtN(g.totalSaved||0)}</div>
-      <input class="modal-input" type="number" id="fix_${g.id}" placeholder="Enter correct opening balance" value="${g.beginBalance||0}" style="margin-bottom:0;"/>
-    </div>`;
-  });
-  openModal('goalBalanceFixerModal');
-}
-
-function confirmGoalBalanceFixer(){
-  S.globalGoals.forEach(g => {
-    const inp = document.getElementById('fix_'+g.id);
-    if(inp){
-      g.beginBalance = parseFloat(inp.value)||0;
-      recalcGoalTotal(g);
-    }
-  });
-  save(); renderGoals(); updateSummary(); updateOverview();
-  closeModal('goalBalanceFixerModal');
-}
-
-function openGoalEdit(id){
-  const g=S.globalGoals.find(x=>x.id===id); if(!g) return;
-  _editingGoalId=id;
-  document.getElementById('goalModalTitle').textContent='Edit Goal 🎯';
-  document.getElementById('goalSaveBtn').textContent='Save Changes';
-  document.getElementById('goalName').value=g.name;
-  document.getElementById('goalTarget').value=g.target;
-  // Only pre-fill with beginBalance — NOT totalSaved (which includes contributions)
-  document.getElementById('goalSaved').value=g.beginBalance||0;
-  openModal('goalModal');
-}
-
-
-function recalcGoalTotal(g){
-  // totalSaved = beginBalance + current period transactions only (not rolled over)
-  const txNet=(g.transactions||[])
-    .filter(tx=>!tx.rolledOver)
-    .reduce((a,tx)=>a+(tx.type==='withdrawal'?-tx.amount:tx.amount),0);
-  g.totalSaved=Math.max(0,(g.beginBalance||0)+txNet);
-  return g.totalSaved;
-}
-
-function updateGoalContrib(id,val){
-  const m=getM(); if(!m.goalContribs) m.goalContribs={};
-  m.goalContribs[id]=parseFloat(val)||0;
-  const g=S.globalGoals.find(x=>x.id===id);
-  if(g) recalcGoalTotal(g);
-  save(); updateSummary(); updateOverview();
-  renderGoalProgress(id);
 }
 
 function renderGoalProgress(id){
