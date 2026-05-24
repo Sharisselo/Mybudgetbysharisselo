@@ -2688,6 +2688,22 @@ function restoreVariableCategories(){
   save(); renderAllRows(); renderVariableRestoreBanner();
 }
 
+
+function openSetSavingsTarget(bankId){
+  const b=getBankById(bankId); if(!b) return;
+  document.getElementById('savingsTargetBankId').value=bankId;
+  document.getElementById('savingsTargetSub').textContent=`Set a savings target for "${b.name}"`;
+  document.getElementById('savingsTargetAmount').value=b.savingsTarget||'';
+  openModal('savingsTargetModal');
+}
+
+function confirmSavingsTarget(){
+  const bankId=document.getElementById('savingsTargetBankId').value;
+  const b=getBankById(bankId); if(!b) return;
+  b.savingsTarget=parseFloat(document.getElementById('savingsTargetAmount').value)||0;
+  save(); renderGoals(); closeModal('savingsTargetModal');
+}
+
 function renderBanks(){
   if(!S.banks) S.banks=[];
   if(!S.transfers) S.transfers=[];
