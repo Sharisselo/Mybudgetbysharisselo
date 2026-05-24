@@ -1741,12 +1741,11 @@ function renderGoals(){
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--red)">${fmtN(rem)}</div><div class="goal-total-lbl">Remaining</div></div>
         <div class="goal-total-item"><div class="goal-total-val" style="color:var(--green)">${pct}%</div><div class="goal-total-lbl">Progress</div></div>
       </div>`:`
-      <div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;">
-        <span>No target set</span>
-        <button onclick="openSetSavingsTarget(\'${b.id}\')" style="background:linear-gradient(135deg,var(--sky),var(--sky2));border:none;color:#fff;font-size:10px;font-weight:600;padding:5px 10px;border-radius:8px;cursor:pointer;">+ Set Target</button>
+      <div style="margin-top:8px;padding:8px 0;border-top:1px solid var(--border);font-size:11px;color:var(--text3);">
+        <span>No target set yet</span>
       </div>`}
       <div class="debt-actions" style="margin-top:${target>0?'8px':'4px'};">
-        <button class="action-btn edit" onclick="openSetSavingsTarget(\'${b.id}\')">🎯 ${target>0?'Edit Target':'Set Target'}</button>
+        <button class="action-btn edit" data-bid="${b.id}" onclick="openSetSavingsTarget(this.dataset.bid)">🎯 ${target>0?'Edit Target':'Set Target'}</button>
       </div>
     </div>`;
   });
