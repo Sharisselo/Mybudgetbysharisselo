@@ -292,7 +292,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="sum-card expenses"><div class="sum-label">Actual Spent</div><div class="sum-amount" id="sumExpenses">XCG 0</div><div class="sum-sub">Fixed paid + variable</div></div>
   <div class="sum-card balance"><div class="sum-label">Remaining</div><div class="sum-amount" id="sumBalance">XCG 0</div><div class="sum-sub">Income − spent − saved</div></div>
   <div class="sum-card savings"><div class="sum-label">Saved</div><div class="sum-amount" id="sumSaved">XCG 0</div><div class="sum-sub">This period</div></div>
-  <div class="sum-card joanne"><div class="sum-label">Joanne Income</div><div class="sum-amount" id="sumJoanneIncome">XCG 0</div><div class="sum-sub">This period</div></div>
+  <div class="sum-card joanne"><div class="sum-label">Joanne Net</div><div class="sum-amount" id="sumJoanneIncome">XCG 0</div><div class="sum-sub">This period</div></div>
 </div>
 
 <div class="tab-nav">
@@ -1373,8 +1373,8 @@ function calcPeriodTotals(m){
   // Received reimbursements reduce actual spend
   // Only count reimbursements where money was actually received (received > 0)
   const reimbReceived=(m.reimbursements||[]).reduce((a,r)=>a+(parseFloat(r.received)||0),0);
-  // Actual spend = fixed (paid) + variable only — reimbursements received deducted
-  const totalSpent=Math.max(0,fixedActual+varActual-reimbReceived);
+  // Actual spend = fixed (paid) + variable + debt payments − reimbursements
+  const totalSpent=Math.max(0,fixedActual+varActual+debtPaid-reimbReceived);
   // Saved this period = goal contributions + savings book deposits this period
   const bookThisPeriod=(S.savingsBook||[])
     .filter(e=>e.type==='deposit'&&!e.isBeginning)
@@ -1404,13 +1404,13 @@ function updateSummary(){
     .filter(b=>b.type==='savings')
     .reduce((a,b)=>a+Math.max(0,bankBalance(b)-(parseFloat(b.beginBalance)||0)),0));
 
-  // Remaining = Income − Actual Spend − Debt payments
-  const remainingBanks=totalIncome-actualSpend-t.debtPaid;
+  // Remaining = Income − Actual Spend (fixed+var+debt−reimb) − Savings
+  const remainingBanks=totalIncome-actualSpend-savedTotal;
 
-  // Joanne income card
+  // Joanne card — show net profit (income − expenses)
   const jTotals=joanneCalcTotals();
   const jic=document.getElementById('sumJoanneIncome');
-  if(jic) jic.textContent=fmtN(jTotals.totalIncome);
+  if(jic) jic.textContent=fmtN(jTotals.netProfit);
 
   document.getElementById('sumIncome').textContent=fmtN(totalIncome);
   document.getElementById('sumBudgeted').textContent=fmtN(totalBudgeted);
@@ -1418,10 +1418,10 @@ function updateSummary(){
   document.getElementById('sumBalance').textContent=(remainingBanks<0?'-':'')+fmtN(remainingBanks);
   document.getElementById('sumSaved').textContent=fmtN(savedTotal);
 
-  document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
+  document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed + variable + debt − reimb';
   document.querySelector('.sum-card.budgeted .sum-sub').textContent='Fixed + variable + debt';
   document.querySelector('.sum-card.savings .sum-sub').textContent='Added to savings this period';
-  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spend − debt';
+  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spend − savings';
 
   // Big balance on overview uses income minus spend
   const remaining=totalIncome-actualSpend;
