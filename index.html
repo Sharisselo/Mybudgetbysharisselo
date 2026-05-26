@@ -1266,9 +1266,11 @@ function renderFixedSummary(){
   // Reimbursements for fixed
   const reimbs=(getM().reimbursements||[]).filter(r=>r.tabType==='fixed');
   const reimbHtml=renderReimbSection('fixed', f);
+  // Net paid after reimbursements
+  const netPaidAmt=Math.max(0, paidAmt - f.filter(r=>r.paid).reduce((a,r)=>a+getCategoryReimb('fixed',r.name),0));
   document.getElementById('fixed-summary').innerHTML=`<div class="card" style="padding:14px;">
     <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
-      <span style="font-size:11px;color:var(--text2)">Paid: <strong style="color:var(--green)">${fmtN(paidAmt)}</strong></span>
+      <span style="font-size:11px;color:var(--text2)">Paid: <strong style="color:var(--green)">${fmtN(netPaidAmt)}</strong></span>
       <span style="font-size:11px;color:var(--text2)">Still owed: <strong style="color:var(--red)">${fmtN(unpaid)}</strong></span>
       <span style="font-size:11px;color:var(--text2)">${pct}% done</span>
     </div>
@@ -1340,14 +1342,17 @@ function updateBvaSummary(type){
       <div class="progress-bar"><div class="progress-fill ${pctR>=100?'fill-rose':'fill-green'}" style="width:${Math.min(pctR,100)}%"></div></div>
     </div>`;
   });
+  // Net actual for variable = actual minus all received reimbursements per category
+  const tNetA=rows.reduce((a,r)=>a+Math.max(0,r.actual-getCategoryReimb('variable',r.name)),0);
+  const tNetDiff=tB-tNetA;
   const varReimbHtml=renderReimbSection('variable', rows);
   document.getElementById('variable-summary').innerHTML=`<div class="card" style="padding:14px;">
     <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
       <span style="font-size:11px;color:var(--text2)">Budgeted: <strong>${fmtN(tB)}</strong></span>
-      <span style="font-size:11px;color:var(--text2)">Actual: <strong>${fmtN(tA)}</strong></span>
-      <span class="diff-badge ${diff>=0?'diff-under':'diff-over'}">${diff>=0?'Under '+fmtN(diff):'Over '+fmtN(Math.abs(diff))}</span>
+      <span style="font-size:11px;color:var(--text2)">Actual: <strong>${fmtN(tNetA)}</strong></span>
+      <span class="diff-badge ${tNetDiff>=0?'diff-under':'diff-over'}">${tNetDiff>=0?'Under '+fmtN(tNetDiff):'Over '+fmtN(Math.abs(tNetDiff))}</span>
     </div>
-    <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill ${tA>tB?'fill-rose':'fill-green'}" style="width:${tB>0?Math.min(tA/tB*100,100):0}%"></div></div>
+    <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill ${tNetA>tB?'fill-rose':'fill-green'}" style="width:${tB>0?Math.min(tNetA/tB*100,100):0}%"></div></div>
     <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;">Per Category</div>
     ${rowsHtml||'<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px;">Add categories above</div>'}
     ${varReimbHtml}
@@ -1399,10 +1404,25 @@ function updateSummary(){
   const debtBudgeted=S.globalDebts.reduce((a,d)=>a+(parseFloat(d.minPayment)||0),0);
   const totalBudgeted=fixedBudgeted+varBudgeted+debtBudgeted;
 
-  // Saved = total added above beginning balance across all savings accounts this period
+  // Saved this period = money that flowed INTO savings accounts THIS month only
+  // = income tagged to savings + transfers to savings − expenses from savings this month
   const savedTotal=Math.max(0,(S.banks||[])
     .filter(b=>b.type==='savings')
-    .reduce((a,b)=>a+Math.max(0,bankBalance(b)-(parseFloat(b.beginBalance)||0)),0));
+    .reduce((a,b)=>{
+      const mo=getM();
+      let inflow=0;
+      // Income assigned to this savings account this period
+      (mo.income||[]).forEach(r=>{ if(r.bankId===b.id) inflow+=r.actual||0; });
+      // Transfers into this savings account this period
+      (S.transfers||[]).forEach(t=>{ if(t.toId===b.id) inflow+=t.amount||0; });
+      // Deduct expenses paid from this savings account this period
+      (mo.fixed||[]).forEach(r=>{ if(r.paid&&r.bankId===b.id) inflow-=(r.actual||r.budgeted||0); });
+      (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) inflow-=r.actual||0; });
+      (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) inflow-=e.amount||0; });
+      // Transfers out of this savings account this period
+      (S.transfers||[]).forEach(t=>{ if(t.fromId===b.id) inflow-=t.amount||0; });
+      return a+inflow;
+    },0));
 
   // Remaining = Income − Actual Spend (fixed+var+debt−reimb) − Savings
   const remainingBanks=totalIncome-actualSpend-savedTotal;
