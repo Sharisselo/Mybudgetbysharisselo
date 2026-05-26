@@ -1403,8 +1403,8 @@ function updateSummary(){
     .filter(b=>b.type==='savings')
     .reduce((a,b)=>a+Math.max(0,bankBalance(b)-(parseFloat(b.beginBalance)||0)),0));
 
-  // Remaining = Income − Actual Spend (fixed paid + variable actual)
-  const remainingBanks=totalIncome-actualSpend;
+  // Remaining = Income − Actual Spend − Debt payments
+  const remainingBanks=totalIncome-actualSpend-t.debtPaid;
 
   // Joanne income card
   const jTotals=joanneCalcTotals();
@@ -1419,7 +1419,7 @@ function updateSummary(){
 
   document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
   document.querySelector('.sum-card.savings .sum-sub').textContent='Added to savings this period';
-  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − actual spend';
+  document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spend − debt';
 
   // Big balance on overview uses income minus spend
   const remaining=totalIncome-actualSpend;
@@ -2596,9 +2596,11 @@ function bankBalance(b){
       (mo.joanne.expenses||[]).forEach(e=>{ if(e.bankId===b.id) bal-=e.amount||0; });
     }
   });
+  // Debt payments: deduct from the bank account used to pay
+  // (CC debt payments are handled separately in ccOwedCurrent — not here)
   S.globalDebts.forEach(d=>{
-    if(d.bankId===b.id){
-      S.months.forEach(mo=>{ bal+=parseFloat((mo.debtPayments||{})[d.id])||0; });
+    if(d.bankId===b.id && b.type!=='credit'){
+      S.months.forEach(mo=>{ bal-=parseFloat((mo.debtPayments||{})[d.id])||0; });
     }
   });
   // Received reimbursements add to the chosen bank account
