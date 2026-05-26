@@ -1416,26 +1416,10 @@ function updateSummary(){
   const debtBudgeted=S.globalDebts.reduce((a,d)=>a+(parseFloat(d.minPayment)||0),0);
   const totalBudgeted=fixedBudgeted+varBudgeted+debtBudgeted;
 
-  // Saved this period = money that flowed INTO savings accounts THIS period only
-  const mo=getM();
-  // Only transfers tagged with current period index
-  const currentTransfers=(S.transfers||[]).filter(t=>t.periodIdx===S.currentIdx);
+  // Saved = current savings balance minus beginning balance (what was added this period)
   const savedTotal=Math.max(0,(S.banks||[])
     .filter(b=>b.type==='savings')
-    .reduce((a,b)=>{
-      let inflow=0;
-      // Income assigned to this savings account this period
-      (mo.income||[]).forEach(r=>{ if(r.bankId===b.id) inflow+=r.actual||0; });
-      // Transfers into this savings account THIS period only
-      currentTransfers.forEach(t=>{ if(t.toId===b.id) inflow+=t.amount||0; });
-      // Deduct expenses paid from this savings account this period
-      (mo.fixed||[]).forEach(r=>{ if(r.paid&&r.bankId===b.id) inflow-=(r.actual||r.budgeted||0); });
-      (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) inflow-=r.actual||0; });
-      (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) inflow-=e.amount||0; });
-      // Transfers out of this savings account THIS period only
-      currentTransfers.forEach(t=>{ if(t.fromId===b.id) inflow-=t.amount||0; });
-      return a+inflow;
-    },0));
+    .reduce((a,b)=>a+Math.max(0,bankBalance(b)-(parseFloat(b.beginBalance)||0)),0));
 
   // Remaining = Income − Actual Spend (fixed+var+debt−reimb) − Savings
   const remainingBanks=totalIncome-actualSpend-savedTotal;
