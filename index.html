@@ -1122,6 +1122,16 @@ function updateRowLeftBadges(cid, type){
     const netActual=Math.max(0,(d.actual||0)-catReimb);
     const left=d.budgeted-netActual;
     badge.innerHTML=_leftBadge(left);
+    // Also update the actual input to show net amount
+    const inputs=row.querySelectorAll('.bva-input');
+    const actualInput=inputs[1]; if(!actualInput) return;
+    // Only update if not currently focused (user might be typing)
+    if(document.activeElement!==actualInput){
+      actualInput.value=netActual===0?'':formatNum(netActual);
+      actualInput.type='text';
+      // Store raw value as data attribute so sync still works correctly
+      actualInput.dataset.rawActual=d.actual||0;
+    }
   });
 }
 
@@ -1160,7 +1170,8 @@ function syncBva(cid,type){
   m[type]=Array.from(rows).map(r=>{
     const inp=r.querySelectorAll('.bva-input');
     const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
-    const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
+    // Use rawActual if set (when reimb has adjusted display), otherwise use input value
+    const a=parseFloat(inp[1].dataset.rawActual||String(inp[1].value).replace(/,/g,''))||0;
     const obj={name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
     // bankId is stored on the DOM element itself — never lost on re-render
     if(r.dataset.bankid) obj.bankId=r.dataset.bankid;
@@ -1308,7 +1319,8 @@ function syncBvaQuiet(cid, type){
   m[type]=Array.from(rows).map(r=>{
     const inp=r.querySelectorAll('.bva-input');
     const b=parseFloat(String(inp[0].value).replace(/,/g,''))||0;
-    const a=parseFloat(String(inp[1].value).replace(/,/g,''))||0;
+    // Use rawActual if set (when reimb has adjusted display), otherwise use input value
+    const a=parseFloat(inp[1].dataset.rawActual||String(inp[1].value).replace(/,/g,''))||0;
     const obj={name:r.querySelector('.bva-name').value, budgeted:b, actual:a};
     if(r.dataset.bankid) obj.bankId=r.dataset.bankid;
     return obj;
@@ -1404,23 +1416,24 @@ function updateSummary(){
   const debtBudgeted=S.globalDebts.reduce((a,d)=>a+(parseFloat(d.minPayment)||0),0);
   const totalBudgeted=fixedBudgeted+varBudgeted+debtBudgeted;
 
-  // Saved this period = money that flowed INTO savings accounts THIS month only
-  // = income tagged to savings + transfers to savings − expenses from savings this month
+  // Saved this period = money that flowed INTO savings accounts THIS period only
+  const mo=getM();
+  // Only transfers tagged with current period index
+  const currentTransfers=(S.transfers||[]).filter(t=>t.periodIdx===S.currentIdx);
   const savedTotal=Math.max(0,(S.banks||[])
     .filter(b=>b.type==='savings')
     .reduce((a,b)=>{
-      const mo=getM();
       let inflow=0;
       // Income assigned to this savings account this period
       (mo.income||[]).forEach(r=>{ if(r.bankId===b.id) inflow+=r.actual||0; });
-      // Transfers into this savings account this period
-      (S.transfers||[]).forEach(t=>{ if(t.toId===b.id) inflow+=t.amount||0; });
+      // Transfers into this savings account THIS period only
+      currentTransfers.forEach(t=>{ if(t.toId===b.id) inflow+=t.amount||0; });
       // Deduct expenses paid from this savings account this period
       (mo.fixed||[]).forEach(r=>{ if(r.paid&&r.bankId===b.id) inflow-=(r.actual||r.budgeted||0); });
       (mo.variable||[]).forEach(r=>{ if(r.bankId===b.id) inflow-=r.actual||0; });
       (mo.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) inflow-=e.amount||0; });
-      // Transfers out of this savings account this period
-      (S.transfers||[]).forEach(t=>{ if(t.fromId===b.id) inflow-=t.amount||0; });
+      // Transfers out of this savings account THIS period only
+      currentTransfers.forEach(t=>{ if(t.fromId===b.id) inflow-=t.amount||0; });
       return a+inflow;
     },0));
 
@@ -2963,7 +2976,8 @@ function confirmTransfer(){
   S.transfers.push({
     id:'tr'+Date.now(), fromId, toId, amount,
     note:document.getElementById('transferNote').value.trim(),
-    date:document.getElementById('transferDate').value
+    date:document.getElementById('transferDate').value,
+    periodIdx:S.currentIdx
   });
   save(); renderBanks(); closeModal('transferModal');
 }
