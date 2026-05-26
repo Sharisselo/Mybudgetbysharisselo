@@ -1118,7 +1118,9 @@ function updateRowLeftBadges(cid, type){
   rows.forEach((row,i)=>{
     const badge=row.querySelector('.row-left-badge'); if(!badge) return;
     const d=data[i]; if(!d) return;
-    const left=d.budgeted-(d.actual||0);
+    const catReimb=getCategoryReimb(type, d.name);
+    const netActual=Math.max(0,(d.actual||0)-catReimb);
+    const left=d.budgeted-netActual;
     badge.innerHTML=_leftBadge(left);
   });
 }
@@ -1130,9 +1132,10 @@ function updateFixedLeftBadges(){
   rows.forEach((row,i)=>{
     const badge=row.querySelector('.row-left-badge'); if(!badge) return;
     const d=data[i]; if(!d) return;
-    // remaining = budgeted minus actual (or budgeted if no actual entered)
-    const spent=d.actual||d.budgeted;
-    const left=d.budgeted-spent;
+    const catReimb=getCategoryReimb('fixed', d.name);
+    const rawSpent=d.actual||d.budgeted;
+    const netSpent=Math.max(0,rawSpent-catReimb);
+    const left=d.budgeted-netSpent;
     badge.innerHTML=_leftBadge(left);
   });
 }
