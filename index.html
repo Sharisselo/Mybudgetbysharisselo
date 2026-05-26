@@ -1227,7 +1227,7 @@ function getCategoryReimb(tabType, categoryName){
   const m=getM();
   return (m.reimbursements||[])
     .filter(r=>r.tabType===tabType && r.category===categoryName)
-    .reduce((a,r)=>a+(r.received||0),0);
+    .reduce((a,r)=>a+(parseFloat(r.received)||0),0);
 }
 
 function renderFixedSummary(){
@@ -1368,8 +1368,9 @@ function calcPeriodTotals(m){
       return a+Math.max(0,bal-begin);
     },0));
   // Received reimbursements reduce actual spend
-  const reimbReceived=(m.reimbursements||[]).reduce((a,r)=>a+(r.received||0),0);
-  // Actual spend = fixed (paid) + variable only — debt is tracked separately, reimbursements deducted
+  // Only count reimbursements where money was actually received (received > 0)
+  const reimbReceived=(m.reimbursements||[]).reduce((a,r)=>a+(parseFloat(r.received)||0),0);
+  // Actual spend = fixed (paid) + variable only — reimbursements received deducted
   const totalSpent=Math.max(0,fixedActual+varActual-reimbReceived);
   // Saved this period = goal contributions + savings book deposits this period
   const bookThisPeriod=(S.savingsBook||[])
@@ -2175,7 +2176,7 @@ function renderReimbSection(tabType, categoryRows){
       const bankName=r.bankId?(S.banks||[]).find(b=>b.id===r.bankId)?.name:'';
       html+=`<div class="reimb-row">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:11px;color:var(--text);">${r.category||'—'}${r.note?' · <span style="color:var(--text3);">${r.note}</span>':''}</div>
+          <div style="font-size:11px;color:var(--text);">${r.category||'—'}${r.note?' · <span style="color:var(--text3);">'+r.note+'</span>':''}</div>
           <div style="font-size:10px;color:var(--text3);margin-top:1px;">
             ${r.received?`Received ${fmtN(r.received)} on ${r.receivedDate||'—'}${bankName?' → '+bankName:''}`:' Pending'}
           </div>
