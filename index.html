@@ -1396,7 +1396,8 @@ function updateSummary(){
   const m=getM();
   const fixedBudgeted=(m.fixed||[]).reduce((a,r)=>a+r.budgeted,0);
   const varBudgeted=(m.variable||[]).reduce((a,r)=>a+r.budgeted,0);
-  const totalBudgeted=fixedBudgeted+varBudgeted;
+  const debtBudgeted=S.globalDebts.reduce((a,d)=>a+(parseFloat(d.minPayment)||0),0);
+  const totalBudgeted=fixedBudgeted+varBudgeted+debtBudgeted;
 
   // Saved = total added above beginning balance across all savings accounts this period
   const savedTotal=Math.max(0,(S.banks||[])
@@ -1418,6 +1419,7 @@ function updateSummary(){
   document.getElementById('sumSaved').textContent=fmtN(savedTotal);
 
   document.querySelector('.sum-card.expenses .sum-sub').textContent='Fixed paid + variable';
+  document.querySelector('.sum-card.budgeted .sum-sub').textContent='Fixed + variable + debt';
   document.querySelector('.sum-card.savings .sum-sub').textContent='Added to savings this period';
   document.querySelector('.sum-card.balance .sum-sub').textContent='Income − spend − debt';
 
@@ -2650,15 +2652,15 @@ function bankInOut(b){
   (m.fixed||[]).forEach(r=>{ if(r.paid&&r.bankId===b.id) totalOut+=(r.actual||r.budgeted||0); });
   (m.variable||[]).forEach(r=>{ if(r.bankId===b.id) totalOut+=r.actual||0; });
   (m.dailyExpenses||[]).forEach(e=>{ if(e.bankId===b.id) totalOut+=e.amount||0; });
-  // Debt payments add to "in" for the linked bank
-  S.globalDebts.forEach(d=>{
-    if(d.bankId===b.id){
-      S.months.forEach(mo=>{
-        const paid=parseFloat((mo.debtPayments||{})[d.id])||0;
-        totalIn+=paid;
-      });
-    }
-  });
+  // Debt payments come OUT of the linked bank (for non-CC accounts)
+  if(b.type!=='credit'){
+    S.globalDebts.forEach(d=>{
+      if(d.bankId===b.id){
+        const paid=parseFloat((m.debtPayments||{})[d.id])||0;
+        totalOut+=paid;
+      }
+    });
+  }
   (S.transfers||[]).forEach(t=>{
     if(t.fromId===b.id) totalOut+=t.amount||0;
     if(t.toId===b.id)   totalIn+=t.amount||0;
