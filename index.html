@@ -1925,6 +1925,16 @@ function confirmHistorySavedEdit(){
   save(); renderHistory(); closeModal('historySavedModal');
 }
 
+
+function deleteMonth(idx){
+  if(idx===S.currentIdx){ alert('Cannot delete the current month. Create a new month first.'); return; }
+  if(!confirm('Delete this period? All data for this period will be lost.')) return;
+  S.months.splice(idx,1);
+  // Adjust currentIdx if needed
+  if(S.currentIdx>=S.months.length) S.currentIdx=S.months.length-1;
+  save(); refreshAll();
+}
+
 function renderHistory(){
   const list=document.getElementById('history-list'); list.innerHTML='';
   [...S.months].reverse().forEach((m,ri)=>{
@@ -2032,6 +2042,10 @@ function confirmNewMonth(){
     g.totalSaved=g.beginBalance;
     // beginBalance is now correct — recalc to confirm clean state
     recalcGoalTotal(g);
+  });
+  // Update savings account beginBalance to current balance so new month starts at zero saved
+  (S.banks||[]).filter(b=>b.type==='savings').forEach(b=>{
+    b.beginBalance=bankBalance(b);
   });
   S.months.push(nm); S.currentIdx=S.months.length-1;
   save(); refreshAll(); closeModal('newMonthModal');
